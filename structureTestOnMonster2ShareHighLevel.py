@@ -130,7 +130,7 @@ def work(mode, data_name, test_dataname):
 				(param_i, param_i - share_learning_rate * grad_i)
 				for param_i, grad_i in zip(share_params, share_grads)
 			]
-			 
+			
 			grads = T.grad(cost, local_params[i])
 			local_updates =  [
 				(param_i, param_i - local_learning_rate * grad_i)
@@ -193,7 +193,7 @@ def work(mode, data_name, test_dataname):
 			fpr, tpr, _ = roc_curve(real_label, pred_prob)
 			roc_auc = auc(fpr, tpr)
 			print "data_name: ", data_name
-			print "test_dataname: ", test_dataname
+# 			print "test_dataname: ", test_dataname
 			print "ROC: ", roc_auc
 			
 		while (epoch < n_epochs):
@@ -229,7 +229,7 @@ def work(mode, data_name, test_dataname):
 				fpr, tpr, _ = roc_curve(real_label, pred_prob)
 				roc_auc = auc(fpr, tpr)
 				print "data_name: ", data_name
-				print "test_dataname: ", test_dataname
+# 				print "test_dataname: ", test_dataname
 				print "ROC: ", roc_auc
 		
 				# Save model
