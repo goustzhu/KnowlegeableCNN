@@ -73,8 +73,9 @@ def work(mode, data_name, test_dataname):
 		logistic_layer_w = layer2[i].W
 		logistic_layer_b = layer2[i].b
 		
-		local_params.append(layer2[i].params + layer1[i].params + layer0[i].params)
-
+		local_params.append(layer0[i].params)
+	
+	share_params = layer2[0].params + layer1[0].params
 	# construct the parameter array.
 	params = layer2[0].params + layer1[0].params
 	
@@ -89,7 +90,7 @@ def work(mode, data_name, test_dataname):
 	traintext = ["data/" + data_names[i] + "/train/text"  for i in xrange(data_count)]
 	trainlabel = ["data/" + data_names[i] + "/train/label"  for i in xrange(data_count)]
 	testtext = ["data/" + test_data_names[i] + "/test/text"  for i in xrange(data_count)]
-	testlabel =  ["data/" + test_data_names[i] + "/test/label"  for i in xrange(data_count)]
+	testlabel = ["data/" + test_data_names[i] + "/test/label"  for i in xrange(data_count)]
 	
 	loadParamsVal(para_path, params)
 
@@ -98,7 +99,8 @@ def work(mode, data_name, test_dataname):
 		valid_model = list()
 		print "Loading train data."
 		batchSize = 10
-		learning_rate = 0.1
+		share_learning_rate = 0.01
+		local_learning_rate = 0.1
 		n_batches = list()
 		
 		print "Loading test data."
@@ -122,12 +124,19 @@ def work(mode, data_name, test_dataname):
 			error = layer2[i].errors(docLabel)
 			cost = layer2[i].negative_log_likelihood(docLabel)
 			
-			grads = T.grad(cost, local_params[i])
 		
-			updates = [
-				(param_i, param_i - learning_rate * grad_i)
+			share_grads = T.grad(cost, share_params)
+			share_updates = [
+				(param_i, param_i - share_learning_rate * grad_i)
+				for param_i, grad_i in zip(share_params, share_grads)
+			]
+			 
+			grads = T.grad(cost, local_params[i])
+			local_updates =  [
+				(param_i, param_i - local_learning_rate * grad_i)
 				for param_i, grad_i in zip(local_params[i], grads)
 			]
+			updates = share_updates + local_updates
 			print "Compiling train computing graph."
 			
 			train_model.append(theano.function(
@@ -174,7 +183,7 @@ def work(mode, data_name, test_dataname):
 		
 		# ####Validate the model####
 		for dataset_index in xrange(data_count):
-			costNum, errorNum, pred_label, real_label, pred_prob = valid_model[i]()
+			costNum, errorNum, pred_label, real_label, pred_prob = valid_model[dataset_index]()
 			print "Valid current model :", data_names[dataset_index]
 			print "Cost: ", costNum
 			print "Error: ", errorNum
@@ -210,7 +219,7 @@ def work(mode, data_name, test_dataname):
 						
 			# Validate the model
 			for dataset_index in xrange(data_count):
-				costNum, errorNum, pred_label, real_label, pred_prob = valid_model[i]()
+				costNum, errorNum, pred_label, real_label, pred_prob = valid_model[dataset_index]()
 				print "Valid current model :", data_names[dataset_index]
 				print "Cost: ", costNum
 				print "Error: ", errorNum
