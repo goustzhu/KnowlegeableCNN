@@ -94,7 +94,7 @@ def work(mode, data_name, test_dataname):
 	# Load the parameters last time, optionally.
 	loadParamsVal(para_path, params)
 
-	if(mode == "train"):
+	if(mode == "train" or mode == "test"):
 		train_model = list()
 		valid_model = list()
 		print "Loading train data."
@@ -132,24 +132,24 @@ def work(mode, data_name, test_dataname):
 			]
 			
 			grads = T.grad(cost, local_params[i])
-			local_updates =  [
+			local_updates = [
 				(param_i, param_i - local_learning_rate * grad_i)
 				for param_i, grad_i in zip(local_params[i], grads)
 			]
 			updates = share_updates + local_updates
 			print "Compiling train computing graph."
-			
-			train_model.append(theano.function(
-		 		[index],
-		 		[cost, error, layer2[i].y_pred, docLabel],
-		 		updates=updates,
-		 		givens={
-								corpus: docMatrixes,
-								docSentenceCount: docSentenceNums[index * batchSize: (index + 1) * batchSize + 1],
-								sentenceWordCount: sentenceWordNums,
-								docLabel: labels[index * batchSize: (index + 1) * batchSize]
-							}
-	 		))
+			if mode == "train":
+				train_model.append(theano.function(
+			 		[index],
+			 		[cost, error, layer2[i].y_pred, docLabel],
+			 		updates=updates,
+			 		givens={
+									corpus: docMatrixes,
+									docSentenceCount: docSentenceNums[index * batchSize: (index + 1) * batchSize + 1],
+									sentenceWordCount: sentenceWordNums,
+									docLabel: labels[index * batchSize: (index + 1) * batchSize]
+								}
+		 		))
 			print "Compiled."
 			
 			print "Load test dataname: %s" % test_data_names[i]
@@ -174,17 +174,8 @@ def work(mode, data_name, test_dataname):
 						}
 		 	))
 			print "Compiled."
-		# for list-type data
-
-		print "Start to train."
-		epoch = 0
-		n_epochs = 2000
-		ite = 0
-		
-		# ####Validate the model####
-		for dataset_index in xrange(data_count):
-			costNum, errorNum, pred_label, real_label, pred_prob = valid_model[dataset_index]()
-			print "Valid current model :", data_names[dataset_index]
+			costNum, errorNum, pred_label, real_label, pred_prob = valid_model[i]()
+			print "Valid current model :", data_names[i]
 			print "Cost: ", costNum
 			print "Error: ", errorNum
 	 		
@@ -192,6 +183,36 @@ def work(mode, data_name, test_dataname):
 			roc_auc = auc(fpr, tpr)
 			print "data_name: ", data_name
 			print "ROC: ", roc_auc
+			fpr, tpr, threshold = roc_curve(real_label, pred_label)
+			index_of_one = list(threshold).index(1)
+			print "TPR: ", tpr[index_of_one]
+			print "FPR: ", fpr[index_of_one]
+			print "threshold: ", threshold[index_of_one]
+
+		if mode == "test":
+			return
+
+		print "Start to train."
+		epoch = 0
+		n_epochs = 2000
+		ite = 0
+		
+		# ####Validate the model####
+# 		for dataset_index in xrange(data_count):
+# 			costNum, errorNum, pred_label, real_label, pred_prob = valid_model[dataset_index]()
+# 			print "Valid current model :", data_names[dataset_index]
+# 			print "Cost: ", costNum
+# 			print "Error: ", errorNum
+# 	 		
+# 			fpr, tpr, _ = roc_curve(real_label, pred_prob)
+# 			roc_auc = auc(fpr, tpr)
+# 			print "data_name: ", data_name
+# 			print "ROC: ", roc_auc
+# 			fpr, tpr, threshold = roc_curve(real_label, pred_label)
+# 			index_of_one = list(threshold).index(1)
+# 			print "TPR: ", tpr[index_of_one]
+# 			print "FPR: ", fpr[index_of_one]
+# 			print "threshold: ", threshold[index_of_one]
 			
 		while (epoch < n_epochs):
 			epoch = epoch + 1
@@ -222,7 +243,12 @@ def work(mode, data_name, test_dataname):
 				roc_auc = auc(fpr, tpr)
 				print "data_name: ", data_name
 				print "ROC: ", roc_auc
-		
+					
+				fpr, tpr, threshold = roc_curve(real_label, pred_label)
+				index_of_one = list(threshold).index(1)
+				print "TPR: ", tpr[index_of_one]
+				print "FPR: ", fpr[index_of_one]
+				print "threshold: ", threshold[index_of_one]
 			# Save model
 			print "Saving parameters."
 			saveParamsVal(para_path, params)
@@ -260,9 +286,6 @@ def work(mode, data_name, test_dataname):
 # 			f.close()
 # 			print "Written." + str(count)
 # 			count += 100
-		
-		
-	print "All finished!"
 	
 def saveParamsVal(path, params):
 	with open(path, 'wb') as f:  # open file with write-mode
@@ -289,3 +312,4 @@ def transToTensor(data, t):
     )
 if __name__ == '__main__':
 	work(mode=sys.argv[1], data_name=sys.argv[2], test_dataname=sys.argv[3])
+	print "All finished!"

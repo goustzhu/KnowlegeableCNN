@@ -5,7 +5,7 @@ from mlp import HiddenLayer
 from logistic_sgd import LogisticRegression
 from DocEmbeddingNN import DocEmbeddingNN
 # from DocEmbeddingNNPadding import DocEmbeddingNN
-from knoweagebleClassifyFlattened import CorpusReader
+from knoweagebleClassifyFlattenedLazy import CorpusReader
 import cPickle
 import os
 
@@ -105,10 +105,16 @@ def work(mode, data_name, test_dataname):
 		print "data_name: ", data_name
 		print "test_dataname: ", test_dataname
 		print "ROC: ", roc_auc
-		print "TPR: ", tpr[-1]
-		print "FPR: ", fpr[-1]
+		
+		fpr, tpr, threshold = roc_curve(real_label, pred_label)
+		
+		index_of_one = list(threshold).index(1)
+		print "TPR: ", tpr[index_of_one]
+		print "FPR: ", fpr[index_of_one]
+		print "threshold: ", threshold[index_of_one]
 		if mode == "test":
-			return
+			valid_model.free()
+			return errorNum, roc_auc, tpr[index_of_one], fpr[index_of_one]
 		
 		print "Loading train data."
 		cr_train = CorpusReader(minDocSentenceNum=5, minSentenceWordNum=5, dataset=traintext, labelset=trainlabel)
@@ -184,12 +190,18 @@ def work(mode, data_name, test_dataname):
 			print "data_name: ", data_name
 			print "test_dataname: ", test_dataname
 			print "ROC: ", roc_auc
-			print "TPR: ", tpr[-1]
-			print "FPR: ", fpr[-1]
+			
+			fpr, tpr, threshold = roc_curve(real_label, pred_label)
+			index_of_one = list(threshold).index(1)
+			print "TPR: ", tpr[index_of_one]
+			print "FPR: ", fpr[index_of_one]
+			print "threshold: ", threshold[index_of_one]
 			# Save model
 			print "Saving parameters."
 			saveParamsVal(para_path, params)
 			print "Saved."
+		valid_model.free()
+		train_model.free()
 	elif(mode == "deploy"):
 		print "Compiling computing graph."
 		output_model = theano.function(
@@ -247,27 +259,28 @@ def transToTensor(data, t):
         ),
         borrow=True
     )
-
-def perf_measure(y_actual, y_hat):
-	TP = 0
-	FP = 0
-	TN = 0
-	FN = 0
 	
-	for i in range(len(y_hat)): 
-		if y_actual[i] == y_hat[i] == 1:
-			TP += 1
-	for i in range(len(y_hat)): 
-		if y_actual[i] == 1 and y_actual != y_hat[i]:
-			FP += 1
-	for i in range(len(y_hat)): 
-		if y_actual[i] == y_hat[i] == 0:
-			TN += 1
-	for i in range(len(y_hat)): 
-		if y_actual[i] == 0 and y_actual != y_hat[i]:
-			FN += 1
-
 if __name__ == '__main__':
-	work(mode=sys.argv[1], data_name=sys.argv[2], test_dataname=sys.argv[3])
+	mode = sys.argv[1]
+	results = dict()
+	if mode == "testall":
+		train_model_list = ["car", "web", "finance", "cfw_all"]
+		valid_model_list = ["car", "web", "finance", "cfw_all"]
+		indicate_name = ["errorRate", "roc", "tpr", "fpr"]
+		for train_model in train_model_list:
+			for valid_model in valid_model_list:
+				print "--------This is \"%s\"->\"%s\"----------" % (train_model, valid_model)
+				errorRate, roc, tpr, fpr = work(mode="test", data_name=train_model, test_dataname=valid_model)
+				results["%s->%s" % (train_model, valid_model)] = (errorRate, roc, tpr, fpr) 
+				print
+		for i in xrange(4):
+			print indicate_name[i]
+			for train_model in train_model_list:
+				print train_model,
+				for valid_model in valid_model_list:
+					print "\t", results["%s->%s" % (train_model, valid_model)][i],
+				print
+			print
+	else:
+		work(mode=sys.argv[1], data_name=sys.argv[2], test_dataname=sys.argv[3])
 	print "All finished!"
-
