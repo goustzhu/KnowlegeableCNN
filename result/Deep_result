@@ -1,0 +1,13 @@
+ROC			
+train_test	car	web	finance
+car	0.9161	0.7349	0.8645
+web	0.8251	0.8257	0.848
+finance	0.8713	0.784	0.9022
+share	0.9222916667	0.3133177459	0.9030861612
+			
+Error			
+train_test	car	web	finance
+car			
+web			
+finance			
+share	0.1491935484	0.1244635193	0.132

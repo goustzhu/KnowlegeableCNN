@@ -82,7 +82,6 @@ def work(mode, data_name, test_dataname):
 	for i in xrange(data_count):
 		params += layer0[i].params
 		
-	# Load the parameters last time, optionally.
 	
 # 	data_name = "car"
 	
@@ -92,6 +91,7 @@ def work(mode, data_name, test_dataname):
 	testtext = ["data/" + test_data_names[i] + "/test/text"  for i in xrange(data_count)]
 	testlabel = ["data/" + test_data_names[i] + "/test/label"  for i in xrange(data_count)]
 	
+	# Load the parameters last time, optionally.
 	loadParamsVal(para_path, params)
 
 	if(mode == "train"):
@@ -187,13 +187,10 @@ def work(mode, data_name, test_dataname):
 			print "Valid current model :", data_names[dataset_index]
 			print "Cost: ", costNum
 			print "Error: ", errorNum
-# 			print "Valid Pred: ", pred_label
-# 			print "pred_prob: ", pred_prob
 	 		
 			fpr, tpr, _ = roc_curve(real_label, pred_prob)
 			roc_auc = auc(fpr, tpr)
 			print "data_name: ", data_name
-# 			print "test_dataname: ", test_dataname
 			print "ROC: ", roc_auc
 			
 		while (epoch < n_epochs):
@@ -207,9 +204,6 @@ def work(mode, data_name, test_dataname):
 					costNum, errorNum, pred_label, real_label = train_model[dataset_index](i)
 					ite = ite + 1
 					# for padding data
-		# 			costNum, errorNum = train_model(docMatrixes, labels)
-		# 			del docMatrixes, docSentenceNums, sentenceWordNums, labels
-					# print ".", 
 					if(ite % 10 == 0):
 						print
 						print "Dataset name: ", data_names[dataset_index]
@@ -223,19 +217,16 @@ def work(mode, data_name, test_dataname):
 				print "Valid current model :", data_names[dataset_index]
 				print "Cost: ", costNum
 				print "Error: ", errorNum
-	# 			print "Valid Pred: ", pred_label
-	# 			print "pred_prob: ", pred_prob
 		 		
 				fpr, tpr, _ = roc_curve(real_label, pred_prob)
 				roc_auc = auc(fpr, tpr)
 				print "data_name: ", data_name
-# 				print "test_dataname: ", test_dataname
 				print "ROC: ", roc_auc
 		
-				# Save model
-				print "Saving parameters."
-				saveParamsVal(para_path, params)
-				print "Saved."
+			# Save model
+			print "Saving parameters."
+			saveParamsVal(para_path, params)
+			print "Saved."
 # 	elif(mode == "deploy"):
 # 		print "Compiling computing graph."
 # 		output_model = theano.function(
