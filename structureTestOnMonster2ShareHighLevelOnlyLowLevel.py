@@ -40,6 +40,11 @@ def work(mode, data_name, test_dataname):
 	corpus = T.matrix("corpus")
 	docLabel = T.ivector('docLabel')
 	
+	sentenceW = None
+	sentenceB = None
+	docW = None
+	docB = None
+	
 	hidden_layer_w = None
 	hidden_layer_b = None
 	logistic_layer_w = None
@@ -54,7 +59,16 @@ def work(mode, data_name, test_dataname):
 														 sentenceLayerNodesNum=100, \
 														 sentenceLayerNodesSize=[5, 200], \
 														 docLayerNodesNum=100, \
-														 docLayerNodesSize=[3, 100]))
+														 docLayerNodesSize=[3, 100],
+														 sentenceW = sentenceW,
+														 sentenceB = sentenceB,
+														 docW = docW,
+														 docB = docB))
+		
+		sentenceW = layer0[i].sentenceW
+		sentenceB = layer0[i].sentenceB
+		docW = layer0[i].docW
+		docB = layer0[i].docB
 
 		layer1.append(HiddenLayer(
 			rng,
@@ -70,22 +84,22 @@ def work(mode, data_name, test_dataname):
 # 		hidden_layer_b = layer1[i].b
 	
 		layer2.append(LogisticRegression(input=layer1[i].output, n_in=100, n_out=2, W=logistic_layer_w, b=logistic_layer_b))
-		logistic_layer_w = layer2[i].W
-		logistic_layer_b = layer2[i].b
+# 		logistic_layer_w = layer2[i].W
+# 		logistic_layer_b = layer2[i].b
 		
-		local_params.append(layer0[i].params + layer1[i].params)
+		local_params.append(layer2[i].params+layer1[i].params)
 	
-	share_params = list(layer2[0].params)
+	share_params = list(layer0[0].params)
 	# construct the parameter array.
-	params = list(layer2[0].params)
+	params = list(layer0[0].params)
 	
 	for i in xrange(data_count):
-		params += layer1[0].params + layer0[i].params
+		params += layer1[0].params + layer2[i].params
 		
 	
 # 	data_name = "car"
 	
-	para_path = "data/" + data_name + "/log_model/scnn.model"
+	para_path = "data/" + data_name + "/low_model/scnn.model"
 	traintext = ["data/" + data_names[i] + "/train/text"  for i in xrange(data_count)]
 	trainlabel = ["data/" + data_names[i] + "/train/label"  for i in xrange(data_count)]
 	testtext = ["data/" + test_data_names[i] + "/test/text"  for i in xrange(data_count)]
@@ -310,6 +324,7 @@ def transToTensor(data, t):
         ),
         borrow=True
     )
+	
 if __name__ == '__main__':
 	work(mode=sys.argv[1], data_name=sys.argv[2], test_dataname=sys.argv[3])
 	print "All finished!"

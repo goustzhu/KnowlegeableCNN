@@ -16,7 +16,11 @@ class DocEmbeddingNN:
                           sentenceLayerNodesSize=(2, 2),
                           docLayerNodesNum=2,
                           docLayerNodesSize=(2, 3),
-                          datatype=theano.config.floatX):
+                          datatype=theano.config.floatX,
+                          sentenceW = None,
+                          sentenceB = None,
+                          docW = None,
+                          docB = None):
         self.__wordEmbeddingDim = wordEmbeddingDim
         self.__sentenceLayerNodesNum = sentenceLayerNodesNum
         self.__sentenceLayerNodesSize = sentenceLayerNodesSize
@@ -25,43 +29,46 @@ class DocEmbeddingNN:
         self.__WBound = 0.2
         self.__MAXDIM = 10000
         self.__datatype = datatype
-        self.sentenceW = None
-        self.sentenceB = None
-        self.docW = None
-        self.docB = None
         
         # For  DomEmbeddingNN optimizer.
 #         self.shareRandge = T.arange(maxRandge)
         
         # Get sentence layer W
-        self.sentenceW = theano.shared(
-            numpy.asarray(
-                rng.uniform(low=-self.__WBound, high=self.__WBound, size=(self.__sentenceLayerNodesNum, self.__sentenceLayerNodesSize[0], self.__sentenceLayerNodesSize[1])),
-                dtype=datatype
-            ),
-            borrow=True
-        )
+        if sentenceW is None:
+            sentenceW = theano.shared(
+                numpy.asarray(
+                    rng.uniform(low=-self.__WBound, high=self.__WBound, size=(self.__sentenceLayerNodesNum, self.__sentenceLayerNodesSize[0], self.__sentenceLayerNodesSize[1])),
+                    dtype=datatype
+                ),
+                borrow=True
+            )
         # Get sentence layer b
-        sentenceB0 = numpy.zeros((sentenceLayerNodesNum,), dtype=datatype)
-        self.sentenceB = theano.shared(value=sentenceB0, borrow=True)
+        if sentenceB is None:
+            sentenceB0 = numpy.zeros((sentenceLayerNodesNum,), dtype=datatype)
+            sentenceB = theano.shared(value=sentenceB0, borrow=True)
         
         # Get doc layer W
-        self.docW = theano.shared(
-            numpy.asarray(
-                rng.uniform(low=-self.__WBound, high=self.__WBound, size=(self.__docLayerNodesNum, self.__docLayerNodesSize[0], self.__docLayerNodesSize[1])),
-                dtype=datatype
-            ),
-            borrow=True
-        )
+        if docW is None:
+            docW = theano.shared(
+                numpy.asarray(
+                    rng.uniform(low=-self.__WBound, high=self.__WBound, size=(self.__docLayerNodesNum, self.__docLayerNodesSize[0], self.__docLayerNodesSize[1])),
+                    dtype=datatype
+                ),
+                borrow=True
+            )
         # Get doc layer b
-        docB0 = numpy.zeros((docLayerNodesNum,), dtype=datatype)
-        self.docB = theano.shared(value=docB0, borrow=True)
+        if docB is None:
+            docB0 = numpy.zeros((docLayerNodesNum,), dtype=datatype)
+            docB = theano.shared(value=docB0, borrow=True)
         
         self.output, _ = theano.scan(fn=self.__dealWithOneDoc,
-                    non_sequences=[corpus, sentenceWordCount, self.docW, self.docB, self.sentenceW, self.sentenceB],
+                    non_sequences=[corpus, sentenceWordCount, docW, docB, sentenceW, sentenceB],
                      sequences=[dict(input=docSentenceCount, taps=[-1, -0])],
                      strict=True)
-        
+        self.sentenceW = sentenceW
+        self.sentenceB = sentenceB
+        self.docW = docW
+        self.docB = docB
         self.params = [self.sentenceW, self.sentenceB, self.docW, self.docB]
         self.outputDimension = self.__docLayerNodesNum * \
                                                   (self.__sentenceLayerNodesNum * (self.__wordEmbeddingDim - self.__sentenceLayerNodesSize[1] + 1) - self.__docLayerNodesSize[1] + 1)
