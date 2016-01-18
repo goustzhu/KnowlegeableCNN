@@ -79,7 +79,7 @@ class LogisticRegression(object):
                     (n_in, n_out),
                     dtype=theano.config.floatX
                 ),
-                name='W',
+                name='log_W',
                 borrow=True
             )
         # initialize the biases b as a vector of n_out 0s
@@ -89,7 +89,7 @@ class LogisticRegression(object):
                     (n_out,),
                     dtype=theano.config.floatX
                 ),
-                name='b',
+                name='log_b',
                 borrow=True
             )
         self.W = W

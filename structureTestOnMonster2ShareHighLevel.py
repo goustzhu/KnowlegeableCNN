@@ -104,7 +104,7 @@ def work(mode, data_name, test_dataname):
 		n_batches = list()
 		
 		print "Loading test data."
- 		
+		
 		for i in xrange(data_count):
 			cr_train = CorpusReader(minDocSentenceNum=5, minSentenceWordNum=5, dataset=traintext[i], labelset=trainlabel[i])
 			docMatrixes, docSentenceNums, sentenceWordNums, ids, labels = cr_train.getCorpus([0, 100000])

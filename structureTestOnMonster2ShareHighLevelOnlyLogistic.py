@@ -66,26 +66,26 @@ def work(mode, data_name, test_dataname):
 			b=hidden_layer_b
 		))
 		
-		hidden_layer_w = layer1[i].W
-		hidden_layer_b = layer1[i].b
+# 		hidden_layer_w = layer1[i].W
+# 		hidden_layer_b = layer1[i].b
 	
 		layer2.append(LogisticRegression(input=layer1[i].output, n_in=100, n_out=2, W=logistic_layer_w, b=logistic_layer_b))
 		logistic_layer_w = layer2[i].W
 		logistic_layer_b = layer2[i].b
 		
-		local_params.append(layer1[i].params + layer0[i].params)
+		local_params.append(layer0[i].params)
 	
-	share_params = layer2[0].params
+	share_params = list(layer2[0].params)
 	# construct the parameter array.
-	params = layer2[0].params 
+	params = list(layer2[0].params)
 	
 	for i in xrange(data_count):
-		params += layer1[i].params+ layer0[i].params
+		params += layer1[0].params + layer0[i].params
 		
 	
 # 	data_name = "car"
 	
-	para_path = "data/" + data_name + "/model/scnn.model"
+	para_path = "data/" + data_name + "/log_model/scnn.model"
 	traintext = ["data/" + data_names[i] + "/train/text"  for i in xrange(data_count)]
 	trainlabel = ["data/" + data_names[i] + "/train/label"  for i in xrange(data_count)]
 	testtext = ["data/" + test_data_names[i] + "/test/text"  for i in xrange(data_count)]
