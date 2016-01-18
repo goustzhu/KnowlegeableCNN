@@ -56,7 +56,60 @@ def work(mode, data_name, test_dataname):
 	
 	loadParamsVal(para_path, params)
 
-	if(mode == "train"):
+	if(mode == "train"  or mode == "test"):
+		learning_rate = 0.1
+		error = layer2.errors(docLabel)
+		cost = layer2.negative_log_likelihood(docLabel)
+		
+		grads = T.grad(cost, params)
+	
+		updates = [
+			(param_i, param_i - learning_rate * grad_i)
+			for param_i, grad_i in zip(params, grads)
+		]
+		
+		print "Loading test data."
+		cr_test = CorpusReader(minDocSentenceNum=5, minSentenceWordNum=5, dataset=testtext, labelset=testlabel)
+		validDocMatrixes, validDocSentenceNums, validSentenceWordNums, validIds, validLabels = cr_test.getCorpus([0, 1000])
+		
+# 		print "Right answer: "
+# 		print zip(validIds, validLabels)
+		
+		validDocMatrixes = transToTensor(validDocMatrixes, theano.config.floatX)
+		validDocSentenceNums = transToTensor(validDocSentenceNums, numpy.int32)
+		validSentenceWordNums = transToTensor(validSentenceWordNums, numpy.int32)
+		validLabels = transToTensor(validLabels, numpy.int32)
+		print "Data loaded."
+		
+		valid_model = theano.function(
+	 		[],
+	 		[cost, error, layer2.y_pred, docLabel, T.transpose(layer2.p_y_given_x)[1]],
+	 		givens={
+							corpus: validDocMatrixes,
+							docSentenceCount: validDocSentenceNums,
+							sentenceWordCount: validSentenceWordNums,
+							docLabel: validLabels
+					}
+	 	)
+		
+		# ####Validate the model####
+		costNum, errorNum, pred_label, real_label, pred_prob = valid_model()
+		print "Valid current model:"
+		print "Cost: ", costNum
+		print "Error: ", errorNum
+# 		print "Valid Pred: ", pred_label
+# 		print "pred_prob: ", pred_prob
+		
+		fpr, tpr, _ = roc_curve(real_label, pred_prob)
+		roc_auc = auc(fpr, tpr)
+		print "data_name: ", data_name
+		print "test_dataname: ", test_dataname
+		print "ROC: ", roc_auc
+		print "TPR: ", tpr[-1]
+		print "FPR: ", fpr[-1]
+		if mode == "test":
+			return
+		
 		print "Loading train data."
 		cr_train = CorpusReader(minDocSentenceNum=5, minSentenceWordNum=5, dataset=traintext, labelset=trainlabel)
 		docMatrixes, docSentenceNums, sentenceWordNums, ids, labels = cr_train.getCorpus([0, 100000])
@@ -71,21 +124,6 @@ def work(mode, data_name, test_dataname):
 		
 	# 	valid_cr = CorpusReader(minDocSentenceNum=5, minSentenceWordNum=5, dataset="data/valid/split", labelset="data/valid/label.txt")
 		print
-		print "Loading test data."
-		cr_test = CorpusReader(minDocSentenceNum=5, minSentenceWordNum=5, dataset=testtext, labelset=testlabel)
-		validDocMatrixes, validDocSentenceNums, validSentenceWordNums, validIds, validLabels = cr_test.getCorpus([0, 1000])
-		
-# 		print "Right answer: "
-# 		print zip(validIds, validLabels)
-		
-		validDocMatrixes = transToTensor(validDocMatrixes, theano.config.floatX)
-		validDocSentenceNums = transToTensor(validDocSentenceNums, numpy.int32)
-		validSentenceWordNums = transToTensor(validSentenceWordNums, numpy.int32)
-		validLabels = transToTensor(validLabels, numpy.int32)
-		print "Data loaded."
-		
-		learning_rate = 0.1
-	
 		index = T.lscalar("index")
 		batchSize = 10
 		n_batches = (len(docSentenceNums.get_value()) - 1) / batchSize + 1
@@ -94,29 +132,9 @@ def work(mode, data_name, test_dataname):
 		print "Validating set size is ", len(validDocMatrixes.get_value())
 		print "Batch size is ", batchSize
 		print "Number of training batches  is ", n_batches
-		error = layer2.errors(docLabel)
-		cost = layer2.negative_log_likelihood(docLabel)
-		
-		grads = T.grad(cost, params)
-	
-		updates = [
-			(param_i, param_i - learning_rate * grad_i)
-			for param_i, grad_i in zip(params, grads)
-		]
-		
 		
 		print "Compiling computing graph."
 		
-		valid_model = theano.function(
-	 		[],
-	 		[cost, error, layer2.y_pred, docLabel, T.transpose(layer2.p_y_given_x)[1]],
-	 		givens={
-							corpus: validDocMatrixes,
-							docSentenceCount: validDocSentenceNums,
-							sentenceWordCount: validSentenceWordNums,
-							docLabel: validLabels
-					}
-	 	)
 		# for list-type data
 		train_model = theano.function(
 	 		[index],
@@ -135,20 +153,6 @@ def work(mode, data_name, test_dataname):
 		epoch = 0
 		n_epochs = 2000
 		ite = 0
-		
-		# ####Validate the model####
-		costNum, errorNum, pred_label, real_label, pred_prob = valid_model()
-		print "Valid current model:"
-		print "Cost: ", costNum
-		print "Error: ", errorNum
-		print "Valid Pred: ", pred_label
-		print "pred_prob: ", pred_prob
-		
-		fpr, tpr, _ = roc_curve(real_label, pred_prob)
-		roc_auc = auc(fpr, tpr)
-		print "data_name: ", data_name
-		print "test_dataname: ", test_dataname
-		print "ROC: ", roc_auc
 			
 		while (epoch < n_epochs):
 			epoch = epoch + 1
@@ -172,7 +176,7 @@ def work(mode, data_name, test_dataname):
 			print "Valid current model:"
 			print "Cost: ", costNum
 			print "Error: ", errorNum
-			print "pred_prob: ", pred_prob
+# 			print "pred_prob: ", pred_prob
 # 			print "Valid Pred: ", pred_label
 			
 			fpr, tpr, _ = roc_curve(real_label, pred_prob)
@@ -180,7 +184,8 @@ def work(mode, data_name, test_dataname):
 			print "data_name: ", data_name
 			print "test_dataname: ", test_dataname
 			print "ROC: ", roc_auc
-			
+			print "TPR: ", tpr[-1]
+			print "FPR: ", fpr[-1]
 			# Save model
 			print "Saving parameters."
 			saveParamsVal(para_path, params)
@@ -218,9 +223,6 @@ def work(mode, data_name, test_dataname):
 			f.close()
 			print "Written." + str(count)
 			count += 100
-		
-		
-	print "All finished!"
 	
 def saveParamsVal(path, params):
 	with open(path, 'wb') as f:  # open file with write-mode
@@ -245,5 +247,27 @@ def transToTensor(data, t):
         ),
         borrow=True
     )
+
+def perf_measure(y_actual, y_hat):
+	TP = 0
+	FP = 0
+	TN = 0
+	FN = 0
+	
+	for i in range(len(y_hat)): 
+		if y_actual[i] == y_hat[i] == 1:
+			TP += 1
+	for i in range(len(y_hat)): 
+		if y_actual[i] == 1 and y_actual != y_hat[i]:
+			FP += 1
+	for i in range(len(y_hat)): 
+		if y_actual[i] == y_hat[i] == 0:
+			TN += 1
+	for i in range(len(y_hat)): 
+		if y_actual[i] == 0 and y_actual != y_hat[i]:
+			FN += 1
+
 if __name__ == '__main__':
 	work(mode=sys.argv[1], data_name=sys.argv[2], test_dataname=sys.argv[3])
+	print "All finished!"
+
