@@ -1,0 +1,27 @@
+roc				
+train\test	car	house	finance	all
+car	0.9143	0.6959	0.8326	0.8378
+house	0.8167	0.8099	0.6822	0.8019
+finance	0.7927	0.6172	0.8655	0.7616
+all	0.9111	0.8205	0.8661	0.8811
+				
+acc				
+train\test	car	house	finance	all
+car	0.86	0.7107	0.824	0.7763
+house	0.732	0.8471	0.732	0.8315
+finance	0.772	0.7645	0.808	0.8127
+all	0.824	0.8306	0.856	0.8531
+				
+tpr				
+train\test	car	house	finance	all
+car	0.8936	0.4468	0.5625	0.7222
+house	0.6809	0.4255	0.4063	0.4286
+finance	0.5957	0.0426	0.75	0.1746
+all	0.8511	0.4894	0.5938	0.4921
+				
+fpr				
+train\test	car	house	finance	all
+car	0.1478	0.2256	0.1376	0.2127
+house	0.2562	0.0513	0.2202	0.086
+finance	0.1872	0.0615	0.1835	0.0568
+all	0.1823	0.0872	0.1055	0.0731
