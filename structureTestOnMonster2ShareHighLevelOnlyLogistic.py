@@ -55,8 +55,8 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 														 sentenceLayerNodesNum=100, \
 														 sentenceLayerNodesSize=[5, 200], \
 														 docLayerNodesNum=100, \
-														 docLayerNodesSize=[3, 100]),
-														 pooling_mode=pooling_mode)
+														 docLayerNodesSize=[3, 100],
+														 pooling_mode=pooling_mode))
 
 		layer1.append(HiddenLayer(
 			rng,
