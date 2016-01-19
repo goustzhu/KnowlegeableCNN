@@ -14,9 +14,10 @@ import sys
 
 from sklearn.metrics import roc_curve, auc
 
-def work(mode, data_name, test_dataname):
+def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 	print "mode: ", mode
 	print "data_name: ", data_name
+	print "pooling_mode: ", pooling_mode
 	print "Started!"
 	
 	data_names = data_name.split(":")
@@ -54,7 +55,8 @@ def work(mode, data_name, test_dataname):
 														 sentenceLayerNodesNum=100, \
 														 sentenceLayerNodesSize=[5, 200], \
 														 docLayerNodesNum=100, \
-														 docLayerNodesSize=[3, 100]))
+														 docLayerNodesSize=[3, 100]),
+														 pooling_mode=pooling_mode)
 
 		layer1.append(HiddenLayer(
 			rng,
@@ -85,7 +87,7 @@ def work(mode, data_name, test_dataname):
 	
 # 	data_name = "car"
 	
-	para_path = "data/" + data_name + "/log_model/scnn.model"
+	para_path = "data/" + data_name + "/log_model/" + pooling_mode + ".model"
 	traintext = ["data/" + data_names[i] + "/train/text"  for i in xrange(data_count)]
 	trainlabel = ["data/" + data_names[i] + "/train/label"  for i in xrange(data_count)]
 	testtext = ["data/" + test_data_names[i] + "/test/text"  for i in xrange(data_count)]
@@ -311,5 +313,5 @@ def transToTensor(data, t):
         borrow=True
     )
 if __name__ == '__main__':
-	work(mode=sys.argv[1], data_name=sys.argv[2], test_dataname=sys.argv[3])
+	work(mode=sys.argv[1], data_name=sys.argv[2], test_dataname=sys.argv[3], pooling_mode=sys.argv[4])
 	print "All finished!"

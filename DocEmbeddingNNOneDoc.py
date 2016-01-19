@@ -15,7 +15,8 @@ class DocEmbeddingNNOneDoc:
                           sentenceLayerNodesSize=(2, 2),
                           docLayerNodesNum=2,
                           docLayerNodesSize=(2, 3),
-                          datatype=theano.config.floatX):
+                          datatype=theano.config.floatX,
+                          pooling_mode="average_exc_pad"):
         self.__wordEmbeddingDim = wordEmbeddingDim
         self.__sentenceLayerNodesNum = sentenceLayerNodesNum
         self.__sentenceLayerNodesSize = sentenceLayerNodesSize
@@ -28,6 +29,7 @@ class DocEmbeddingNNOneDoc:
         self.sentenceB = None
         self.docW = None
         self.docB = None
+        self.__pooling_mode = pooling_mode
         
         # For  DomEmbeddingNN optimizer.
 #         self.shareRandge = T.arange(maxRandge)
@@ -68,7 +70,7 @@ class DocEmbeddingNNOneDoc:
 #         p = printing.Print('doc_out')
 #         doc_out = p(doc_out)
         doc_out = conv.conv2d(input=self.sentenceResults, filters=self.docW)
-        docPool = downsample.max_pool_2d(doc_out, (self.__MAXDIM, 1), mode="average_exc_pad", ignore_border=False)
+        docPool = downsample.max_pool_2d(doc_out, (self.__MAXDIM, 1), mode=self.__pooling_mode, ignore_border=False)
         docOutput = T.tanh(docPool + self.docB.dimshuffle([0, 'x', 'x']))
         self.output = docOutput.flatten(1)
         
@@ -82,7 +84,7 @@ class DocEmbeddingNNOneDoc:
         sentence = docs[sentenceWordCount0:sentenceWordCount1]
         
         sentence_out = conv.conv2d(input=sentence, filters=sentenceW)
-        sentence_pool = downsample.max_pool_2d(sentence_out, (self.__MAXDIM, 1), mode="average_exc_pad", ignore_border=False)
+        sentence_pool = downsample.max_pool_2d(sentence_out, (self.__MAXDIM, 1), mode=self.__pooling_mode, ignore_border=False)
         
         sentence_output = T.tanh(sentence_pool + sentenceB.dimshuffle([0, 'x', 'x']))
         sentence_embedding = sentence_output.flatten(1)

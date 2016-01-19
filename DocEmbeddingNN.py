@@ -20,7 +20,8 @@ class DocEmbeddingNN:
                           sentenceW = None,
                           sentenceB = None,
                           docW = None,
-                          docB = None):
+                          docB = None,
+                          pooling_mode = "average_exc_pad"):
         self.__wordEmbeddingDim = wordEmbeddingDim
         self.__sentenceLayerNodesNum = sentenceLayerNodesNum
         self.__sentenceLayerNodesSize = sentenceLayerNodesSize
@@ -29,6 +30,7 @@ class DocEmbeddingNN:
         self.__WBound = 0.2
         self.__MAXDIM = 10000
         self.__datatype = datatype
+        self.__pooling_mode = pooling_mode
         
         # For  DomEmbeddingNN optimizer.
 #         self.shareRandge = T.arange(maxRandge)
@@ -89,7 +91,7 @@ class DocEmbeddingNN:
 #         p = printing.Print('doc_out')
 #         doc_out = p(doc_out)
         doc_out = conv.conv2d(input=sentenceResults, filters=docW)
-        docPool = downsample.max_pool_2d(doc_out, (self.__MAXDIM, 1), mode="average_exc_pad", ignore_border=False)
+        docPool = downsample.max_pool_2d(doc_out, (self.__MAXDIM, 1), mode= self.__pooling_mode, ignore_border=False)
         docOutput = T.tanh(docPool + docB.dimshuffle([0, 'x', 'x']))
         doc_embedding = docOutput.flatten(1)
         return doc_embedding
@@ -99,7 +101,7 @@ class DocEmbeddingNN:
         sentence = docs[sentenceWordCount0:sentenceWordCount1]
         
         sentence_out = conv.conv2d(input=sentence, filters=sentenceW)
-        sentence_pool = downsample.max_pool_2d(sentence_out, (self.__MAXDIM, 1), mode="average_exc_pad", ignore_border=False)
+        sentence_pool = downsample.max_pool_2d(sentence_out, (self.__MAXDIM, 1), mode= self.__pooling_mode, ignore_border=False)
         
         sentence_output = T.tanh(sentence_pool + sentenceB.dimshuffle([0, 'x', 'x']))
         sentence_embedding = sentence_output.flatten(1)

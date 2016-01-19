@@ -14,9 +14,10 @@ import sys
 
 from sklearn.metrics import roc_curve, auc
 
-def work(mode, data_name, test_dataname):
+def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 	print "mode: ", mode
 	print "data_name: ", data_name
+	print "pooling_mode: ", pooling_mode
 	print "Started!"
 	
 	data_names = data_name.split(":")
@@ -60,10 +61,11 @@ def work(mode, data_name, test_dataname):
 														 sentenceLayerNodesSize=[5, 200], \
 														 docLayerNodesNum=100, \
 														 docLayerNodesSize=[3, 100],
-														 sentenceW = sentenceW,
-														 sentenceB = sentenceB,
-														 docW = docW,
-														 docB = docB))
+														 sentenceW=sentenceW,
+														 sentenceB=sentenceB,
+														 docW=docW,
+														 docB=docB,
+														 pooling_mode=pooling_mode))
 		
 		sentenceW = layer0[i].sentenceW
 		sentenceB = layer0[i].sentenceB
@@ -87,7 +89,7 @@ def work(mode, data_name, test_dataname):
 # 		logistic_layer_w = layer2[i].W
 # 		logistic_layer_b = layer2[i].b
 		
-		local_params.append(layer2[i].params+layer1[i].params)
+		local_params.append(layer2[i].params + layer1[i].params)
 	
 	share_params = list(layer0[0].params)
 	# construct the parameter array.
@@ -99,7 +101,7 @@ def work(mode, data_name, test_dataname):
 	
 # 	data_name = "car"
 	
-	para_path = "data/" + data_name + "/low_model/scnn.model"
+	para_path = "data/" + data_name + "/low_model/" + pooling_mode + ".model"
 	traintext = ["data/" + data_names[i] + "/train/text"  for i in xrange(data_count)]
 	trainlabel = ["data/" + data_names[i] + "/train/label"  for i in xrange(data_count)]
 	testtext = ["data/" + test_data_names[i] + "/test/text"  for i in xrange(data_count)]
@@ -113,7 +115,7 @@ def work(mode, data_name, test_dataname):
 		valid_model = list()
 		print "Loading train data."
 		batchSize = 10
-		share_learning_rate = 0.01
+		share_learning_rate = 0.1
 		local_learning_rate = 0.1
 		n_batches = list()
 		
@@ -326,5 +328,5 @@ def transToTensor(data, t):
     )
 	
 if __name__ == '__main__':
-	work(mode=sys.argv[1], data_name=sys.argv[2], test_dataname=sys.argv[3])
+	work(mode=sys.argv[1], data_name=sys.argv[2], test_dataname=sys.argv[3], pooling_mode=sys.argv[4])
 	print "All finished!"

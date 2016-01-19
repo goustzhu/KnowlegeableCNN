@@ -13,9 +13,10 @@ import sys
 
 from sklearn.metrics import roc_curve, auc
 
-def work(mode, data_name, test_dataname):
+def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 	print "mode: ", mode
 	print "data_name: ", data_name
+	print "pooling_mode: ", pooling_mode
 	print "Started!"
 	rng = numpy.random.RandomState(23455)
 	docSentenceCount = T.ivector("docSentenceCount")
@@ -28,7 +29,8 @@ def work(mode, data_name, test_dataname):
 													 sentenceLayerNodesNum=100, \
 													 sentenceLayerNodesSize=[5, 200], \
 													 docLayerNodesNum=100, \
-													 docLayerNodesSize=[3, 100])
+													 docLayerNodesSize=[3, 100],
+													 pooling_mode=pooling_mode)
 
 	layer1 = HiddenLayer(
 		rng,
@@ -47,7 +49,7 @@ def work(mode, data_name, test_dataname):
 	
 # 	data_name = "car"
 	
-	para_path = "data/" + data_name + "/model/scnn.model"
+	para_path = "data/" + data_name + "/model/" + pooling_mode + ".model"
 	traintext = "data/" + data_name + "/train/text"
 	trainlabel = "data/" + data_name + "/train/label"
 	testtext = "data/" + test_dataname + "/test/text"
@@ -264,23 +266,27 @@ if __name__ == '__main__':
 	mode = sys.argv[1]
 	results = dict()
 	if mode == "testall":
+		pooling_mode = ["average_exc_pad", "max"]
 		train_model_list = ["car", "web", "finance", "cfw_all"]
 		valid_model_list = ["car", "web", "finance", "cfw_all"]
 		indicate_name = ["errorRate", "roc", "tpr", "fpr"]
-		for train_model in train_model_list:
-			for valid_model in valid_model_list:
-				print "--------This is \"%s\"->\"%s\"----------" % (train_model, valid_model)
-				errorRate, roc, tpr, fpr = work(mode="test", data_name=train_model, test_dataname=valid_model)
-				results["%s->%s" % (train_model, valid_model)] = (errorRate, roc, tpr, fpr) 
-				print
+		for pm in pooling_mode:
+			for train_model in train_model_list:
+				for valid_model in valid_model_list:
+					print "--------This is \"%s\"->\"%s\" by %s----------" % (train_model, valid_model, pm)
+					errorRate, roc, tpr, fpr = work(mode="test", data_name=train_model, test_dataname=valid_model, pooling_mode=pm)
+					results["%s->%s by %s" % (train_model, valid_model, pm)] = (errorRate, roc, tpr, fpr) 
+					print
 		for i in xrange(4):
 			print indicate_name[i]
-			for train_model in train_model_list:
-				print train_model,
-				for valid_model in valid_model_list:
-					print "\t", results["%s->%s" % (train_model, valid_model)][i],
+			
+			for pm in pooling_mode:
+				for train_model in train_model_list:
+					print "%s_%s" % (train_model, pm),
+					for valid_model in valid_model_list:
+						print "\t", results["%s->%s by %s" % (train_model, valid_model, pm)][i],
+					print
 				print
-			print
 	else:
-		work(mode=sys.argv[1], data_name=sys.argv[2], test_dataname=sys.argv[3])
+		work(mode=sys.argv[1], data_name=sys.argv[2], test_dataname=sys.argv[3], pooling_mode=sys.argv[4])
 	print "All finished!"
