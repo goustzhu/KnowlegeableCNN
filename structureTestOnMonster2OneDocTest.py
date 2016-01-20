@@ -14,6 +14,9 @@ import sys
 import os
 
 def work(model_name, dataset_name, pooling_mode):
+	print "model_name: ", model_name
+	print "dataset_name: ", dataset_name
+	print "pooling_mode: ", pooling_mode
 	print "Started!"
 	rng = numpy.random.RandomState(23455)
 	sentenceWordCount = T.ivector("sentenceWordCount")
@@ -49,6 +52,10 @@ def work(model_name, dataset_name, pooling_mode):
 	word_grad = T.grad(cost, corpus)
 	word_score = T.diag(T.dot(word_grad, T.transpose(corpus)))
 	
+	# calculate word
+	cell_scores = T.grad(cost, layer1.output)
+	
+	# calculate word score against cells
 	word_score_against_cell = [T.diag(T.dot(T.grad(layer1.output[i], corpus), T.transpose(corpus))) for i in xrange(layer1_output_num)]
 
 	
@@ -61,7 +68,7 @@ def work(model_name, dataset_name, pooling_mode):
 	print "Compiling computing graph."
 	output_model = theano.function(
  		[corpus, sentenceWordCount],
- 		[layer2.y_pred, sentence_score, word_score, layer1.output] + word_score_against_cell
+ 		[layer2.y_pred, sentence_score, word_score, layer1.output, cell_scores] + word_score_against_cell
  	)
 	
 	print "Compiled."
@@ -88,10 +95,11 @@ def work(model_name, dataset_name, pooling_mode):
 		pred_y = info[0]
 		g = info[1]
 		word_scores = info[2]
-		cell_scores = info[3]
-		word_scores_against_cell = info[4:]
+		cell_outputs = info[3]
+		cell_scores = info[4]
+		word_scores_against_cell = info[5:]
 		
-		if len(word_scores_against_cell) != len(cell_scores):
+		if len(word_scores_against_cell) != len(cell_outputs):
 			print "The dimension of word_socre and word are different."
 			raise Exception("The dimension of word_socre and word are different.")
 		print "End predicting."
@@ -127,14 +135,15 @@ def work(model_name, dataset_name, pooling_mode):
 			os.makedirs(current_doc_dir + "/nc_word")
 		neu_num = 0
 		
-		for w, c in zip(word_scores_against_cell, cell_scores):
+		for w, c_output, c_score in zip(word_scores_against_cell, cell_outputs, cell_scores):
 			with codecs.open(current_doc_dir + "/nc_word/" + str(neu_num), "w", 'utf-8', "ignore") as f:
-				f.write("cell sentence_score: %lf\n" % c)
+				f.write("cell sentence_score: %lf\n" % c_output)
 				for word, word_score in zip(wordList, w):
 					f.write("%s\t%f\n" % (word, word_score))
 			merged_score_word_list = merge_kv(zip(wordList, w))
 			with codecs.open(current_doc_dir + "/nc_word/" + str(neu_num) + "_merged", "w", 'utf-8', "ignore") as f:
-				f.write("cell sentence_score: %lf\n" % c)
+				f.write("cell_scores: %lf\n" % c_score)
+				f.write("cell_output: %lf\n" % c_output)
 				for word, word_score in merged_score_word_list:
 					f.write("%s\t%f\n" % (word, word_score))
 			neu_num += 1
@@ -171,6 +180,10 @@ def merge_kv(list_to_merge):
 	merged_list = list(score_map.items())
 	merged_list.sort(key=lambda x:x[1], reverse=True)
 	return merged_list
-			
+
 if __name__ == '__main__':
-	work(model_name=sys.argv[1], dataset_name=sys.argv[2], pooling_mode=sys.argv[3])
+	if sys.argv[1] == "analyze":
+		from analyseLogFolder import analyseLogFolder
+		analyseLogFolder("data/output/cfw_all/average_exc_pad/car")
+	elif sys.argv[1] == "statistic":
+		work(model_name=sys.argv[2], dataset_name=sys.argv[3], pooling_mode=sys.argv[4])
