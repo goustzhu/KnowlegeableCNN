@@ -53,7 +53,10 @@ class CorpusReader:
         return self.__maxSentenceWordNum
     
     def getDocNum(self):
-        return len(self.labels)
+        if self.labels is None:
+            return len(self.docs)
+        else:
+            return len(self.labels)
     
     def getDim(self):
         return self.__wordDim

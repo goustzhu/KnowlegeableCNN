@@ -12,7 +12,7 @@ import os
 import math
 import sys
 
-from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import roc_curve, auc, accuracy_score
 
 def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 	print "mode: ", mode
@@ -86,8 +86,9 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 		
 	
 # 	data_name = "car"
-	
-	para_path = "data/" + data_name + "/model/scnn.model"
+	if not os.path.exists("data/" + data_name + "/model/"):
+		os.makedirs("data/" + data_name + "/model/")
+	para_path = "data/" + data_name + "/model/" + pooling_mode + ".model"
 	traintext = ["data/" + data_names[i] + "/train/text"  for i in xrange(data_count)]
 	trainlabel = ["data/" + data_names[i] + "/train/label"  for i in xrange(data_count)]
 	testtext = ["data/" + test_data_names[i] + "/test/text"  for i in xrange(data_count)]
@@ -106,6 +107,10 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 		n_batches = list()
 		
 		print "Loading test data."
+		
+		all_pred_label = list()
+		all_real_label = list()
+		all_pred_prob = list()
 		
 		for i in xrange(data_count):
 			cr_train = CorpusReader(minDocSentenceNum=5, minSentenceWordNum=5, dataset=traintext[i], labelset=trainlabel[i])
@@ -177,6 +182,11 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 		 	))
 			print "Compiled."
 			costNum, errorNum, pred_label, real_label, pred_prob = valid_model[i]()
+			
+			all_pred_label.extend(pred_label)
+			all_real_label.extend(real_label)
+			all_pred_prob.extend(pred_prob)
+			
 			print "Valid current model :", data_names[i]
 			print "Cost: ", costNum
 			print "Error: ", errorNum
@@ -190,6 +200,20 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 			print "TPR: ", tpr[index_of_one]
 			print "FPR: ", fpr[index_of_one]
 			print "threshold: ", threshold[index_of_one]
+			
+		print "Valid current model :", data_names
+		errorNum = 1 - accuracy_score(all_real_label, all_pred_label)
+		print "Error: ", errorNum
+ 		
+		fpr, tpr, _ = roc_curve(all_real_label, all_pred_prob)
+		roc_auc = auc(fpr, tpr)
+		print "data_name: ", data_name
+		print "ROC: ", roc_auc
+		fpr, tpr, threshold = roc_curve(real_label, pred_label)
+		index_of_one = list(threshold).index(1)
+		print "TPR: ", tpr[index_of_one]
+		print "FPR: ", fpr[index_of_one]
+		print "threshold: ", threshold[index_of_one]
 
 		if mode == "test":
 			return
@@ -199,23 +223,6 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 		n_epochs = 2000
 		ite = 0
 		
-		# ####Validate the model####
-# 		for dataset_index in xrange(data_count):
-# 			costNum, errorNum, pred_label, real_label, pred_prob = valid_model[dataset_index]()
-# 			print "Valid current model :", data_names[dataset_index]
-# 			print "Cost: ", costNum
-# 			print "Error: ", errorNum
-# 	 		
-# 			fpr, tpr, _ = roc_curve(real_label, pred_prob)
-# 			roc_auc = auc(fpr, tpr)
-# 			print "data_name: ", data_name
-# 			print "ROC: ", roc_auc
-# 			fpr, tpr, threshold = roc_curve(real_label, pred_label)
-# 			index_of_one = list(threshold).index(1)
-# 			print "TPR: ", tpr[index_of_one]
-# 			print "FPR: ", fpr[index_of_one]
-# 			print "threshold: ", threshold[index_of_one]
-			
 		while (epoch < n_epochs):
 			epoch = epoch + 1
 			#######################
@@ -235,12 +242,18 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 						print "Error: ", errorNum
 						
 			# Validate the model
+			all_pred_label = list()
+			all_real_label = list()
+			all_pred_prob = list()
 			for dataset_index in xrange(data_count):
 				costNum, errorNum, pred_label, real_label, pred_prob = valid_model[dataset_index]()
+				all_pred_label.extend(pred_label)
+				all_real_label.extend(real_label)
+				all_pred_prob.extend(pred_prob)		 		
+				
 				print "Valid current model :", data_names[dataset_index]
 				print "Cost: ", costNum
 				print "Error: ", errorNum
-		 		
 				fpr, tpr, _ = roc_curve(real_label, pred_prob)
 				roc_auc = auc(fpr, tpr)
 				print "data_name: ", data_name
@@ -251,6 +264,21 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 				print "TPR: ", tpr[index_of_one]
 				print "FPR: ", fpr[index_of_one]
 				print "threshold: ", threshold[index_of_one]
+			
+			print "Valid current model :", data_names
+			print "Cost: ", costNum
+			print "Error: ", errorNum
+			fpr, tpr, _ = roc_curve(all_real_label, all_pred_prob)
+			roc_auc = auc(fpr, tpr)
+			print "data_name: ", data_name
+			print "ROC: ", roc_auc
+				
+			fpr, tpr, threshold = roc_curve(all_real_label, all_pred_label)
+			index_of_one = list(threshold).index(1)
+			print "TPR: ", tpr[index_of_one]
+			print "FPR: ", fpr[index_of_one]
+			print "threshold: ", threshold[index_of_one]
+		
 			# Save model
 			print "Saving parameters."
 			saveParamsVal(para_path, params)
