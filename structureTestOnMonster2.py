@@ -8,7 +8,7 @@ from DocEmbeddingNN import DocEmbeddingNN
 from knoweagebleClassifyFlattenedLazy import CorpusReader
 import cPickle
 import os
-
+import string
 import sys
 
 from sklearn.metrics import roc_curve, auc
@@ -267,26 +267,25 @@ if __name__ == '__main__':
 	results = dict()
 	if mode == "testall":
 		pooling_mode = ["average_exc_pad", "max"]
-		train_model_list = ["car", "web", "finance", "cfw_all"]
-		valid_model_list = ["car", "web", "finance", "cfw_all"]
-		indicate_name = ["errorRate", "roc", "tpr", "fpr"]
+		train_model_list = ["car", "web", "finance", "house", "cfw_all", "cfh_all"]
+		valid_model_list = ["car", "web", "finance", "house", "cfw_all", "cfh_all"]
+		indicate_name = ["errorRate", "acc", "roc", "tpr", "fpr"]
 		for pm in pooling_mode:
 			for train_model in train_model_list:
 				for valid_model in valid_model_list:
 					print "--------This is \"%s\"->\"%s\" by %s----------" % (train_model, valid_model, pm)
 					errorRate, roc, tpr, fpr = work(mode="test", data_name=train_model, test_dataname=valid_model, pooling_mode=pm)
-					results["%s->%s by %s" % (train_model, valid_model, pm)] = (errorRate, roc, tpr, fpr) 
+					results["%s->%s by %s" % (train_model, valid_model, pm)] = (errorRate, 1 - errorRate, roc, tpr, fpr) 
 					print
-		for i in xrange(4):
+		for i in xrange(len(indicate_name)):
 			print indicate_name[i]
-			
+			print "train/test\t", string.join(valid_model_list, "\t") 
 			for pm in pooling_mode:
 				for train_model in train_model_list:
 					print "%s_%s" % (train_model, pm),
 					for valid_model in valid_model_list:
 						print "\t", results["%s->%s by %s" % (train_model, valid_model, pm)][i],
 					print
-				print
 	else:
 		work(mode=sys.argv[1], data_name=sys.argv[2], test_dataname=sys.argv[3], pooling_mode=sys.argv[4])
 	print "All finished!"
