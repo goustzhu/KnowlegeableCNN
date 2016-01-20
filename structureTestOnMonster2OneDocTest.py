@@ -42,7 +42,7 @@ def work(model_name, dataset_name, pooling_mode):
 	
 	layer2 = LogisticRegression(input=layer1.output, n_in=100, n_out=2)
 
-	cost = layer2.negative_log_likelihood(1 - layer2.y_pred)
+	cost = layer2.negative_log_likelihood(layer2.y_pred)
 		
 	# calculate sentence sentence_score
 	sentence_grads = T.grad(cost, layer0.sentenceResults)
@@ -75,7 +75,7 @@ def work(model_name, dataset_name, pooling_mode):
 	input_filename = "data/" + dataset_name + "/train/text"
 	cr = CorpusReader(minDocSentenceNum=5, minSentenceWordNum=5, dataset=input_filename)
 	count = 0
-	while(count < 10000000):
+	while(count < cr.getDocNum()):
 		info = cr.getCorpus([count, count + 1])
 		count += 1
 		if info is None:
@@ -121,6 +121,8 @@ def work(model_name, dataset_name, pooling_mode):
 		wordList = list()
 		for s in sentences:
 			wordList.extend(s)
+		print "length of word_scores", len(word_scores)
+		print "length of wordList", len(wordList)
 		score_word_list = zip(wordList , word_scores)
 		with codecs.open(current_doc_dir + "/nn_word", "w", 'utf-8', "ignore") as f:
 			for word, word_score in score_word_list:
@@ -147,9 +149,7 @@ def work(model_name, dataset_name, pooling_mode):
 				for word, word_score in merged_score_word_list:
 					f.write("%s\t%f\n" % (word, word_score))
 			neu_num += 1
-				
 		print "Written." + str(count)
-		
 		
 	print "All finished!"
 	

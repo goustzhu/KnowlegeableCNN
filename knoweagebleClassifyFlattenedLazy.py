@@ -59,12 +59,18 @@ class CorpusReader:
         return self.__wordDim
     
     def __sentence2Matrix(self, wordList):
-        sentenceMatrix = map(lambda word: self.w2vDict[word] if (word in self.w2vDict) else None, wordList)
+        sentenceMatrix = map(lambda word: (self.w2vDict[word], word) if (word in self.w2vDict) else None, wordList)
+        
         sentenceMatrix = filter(lambda item: not item is None, sentenceMatrix)
         
         sentenceWordNum = len(sentenceMatrix)
         if(sentenceWordNum < self.minSentenceWordNum):
             return None
+        
+        sentenceMatrix, wordList = zip(*sentenceMatrix)
+        
+        sentenceMatrix = list(sentenceMatrix)
+        wordList = list(wordList)
         return (sentenceMatrix, sentenceWordNum, wordList)
     
     def __doc2Matrix(self, e):
@@ -149,6 +155,8 @@ class CorpusReader:
         docMatrixes = reduce(add, docMatrixes, [])
         sentenceWordNums = reduce(add, sentenceWordNums, [])
         wordListList = reduce(add, wordListList, [])
+        
+        print
         
         docSentenceNums = [0] + list(docSentenceNums)
         sentenceWordNums = [0] + sentenceWordNums
