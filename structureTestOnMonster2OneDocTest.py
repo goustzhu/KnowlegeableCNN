@@ -42,7 +42,7 @@ def work(model_name, dataset_name, pooling_mode):
 	
 	layer2 = LogisticRegression(input=layer1.output, n_in=100, n_out=2)
 
-	cost = layer2.negative_log_likelihood(layer2.y_pred)
+	cost = layer2.negative_log_likelihood(1-layer2.y_pred)
 		
 	# calculate sentence sentence_score
 	sentence_grads = T.grad(cost, layer0.sentenceResults)
@@ -72,7 +72,7 @@ def work(model_name, dataset_name, pooling_mode):
  	)
 	
 	print "Compiled."
-	input_filename = "data/" + dataset_name + "/train/text"
+	input_filename = "data/" + dataset_name + "/train/small_text"
 	cr = CorpusReader(minDocSentenceNum=5, minSentenceWordNum=5, dataset=input_filename)
 	count = 0
 	while(count < cr.getDocNum()):
@@ -184,6 +184,6 @@ def merge_kv(list_to_merge):
 if __name__ == '__main__':
 	if sys.argv[1] == "analyze":
 		from analyseLogFolder import analyseLogFolder
-		analyseLogFolder("data/output/cfw_all/average_exc_pad/car")
+		analyseLogFolder("data/output/cfh_all/average_exc_pad/car")
 	elif sys.argv[1] == "statistic":
 		work(model_name=sys.argv[2], dataset_name=sys.argv[3], pooling_mode=sys.argv[4])
