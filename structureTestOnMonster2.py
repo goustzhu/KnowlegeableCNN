@@ -275,9 +275,9 @@ if __name__ == '__main__':
 	results = dict()
 	if mode == "testall":
 		pooling_mode = ["average_exc_pad", "max"]
-# 		train_model_list = ["car", "web", "finance", "house", "cfw_all", "cfh_all"]
-		train_model_list = ["cfh_all"]
-		valid_model_list = ["car", "web", "finance", "house", "cfw_all", "cfh_all"]
+		train_model_list = ["car",  "finance", "house", "cfh_all"]
+# 		train_model_list = ["cfh_all"]
+		valid_model_list = ["car", "finance", "house", "cfh_all"]
 		indicate_name = ["errorRate", "acc", "roc", "tpr", "fpr", "ar"]
 		for pm in pooling_mode:
 			for train_model in train_model_list:

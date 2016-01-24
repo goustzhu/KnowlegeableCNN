@@ -290,7 +290,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 			roc_auc = auc(fpr, tpr)
 			print "data_name: ", data_name
 			print "ROC: ", roc_auc
-			fpr, tpr, threshold = roc_curve(real_label, pred_label)
+			fpr, tpr, threshold = roc_curve(all_real_label, all_pred_label)
 			index_of_one = list(threshold).index(1)
 			print "TPR: ", tpr[index_of_one]
 			print "FPR: ", fpr[index_of_one]
