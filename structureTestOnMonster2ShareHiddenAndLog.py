@@ -217,8 +217,11 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 		print "Valid current model :", data_names
 		errorNum = 1 - accuracy_score(all_real_label, all_pred_label)
 		print "Error: ", errorNum
- 		
+			
 		fpr, tpr, _ = roc_curve(all_real_label, all_pred_prob)
+		if mode == "test":
+			print "tpr_all: ", tpr
+			print "fpr_all: ", fpr
 		roc_auc = auc(fpr, tpr)
 		print "data_name: ", data_name
 		print "ROC: ", roc_auc

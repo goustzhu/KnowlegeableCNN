@@ -109,12 +109,16 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 # 		print "pred_prob: ", pred_prob
 		
 		fpr, tpr, _ = roc_curve(real_label, pred_prob)
+		if mode == "test":
+			print "tpr_all: ", tpr
+			print "fpr_all: ", fpr
 		roc_auc = auc(fpr, tpr)
 		print "data_name: ", data_name
 		print "test_dataname: ", test_dataname
 		print "ROC: ", roc_auc
 		
 		fpr, tpr, threshold = roc_curve(real_label, pred_label)
+		
 		index_of_one = list(threshold).index(1)
 		ar = (tpr[index_of_one] + 1 - fpr[index_of_one]) / 2
 		print "TPR: ", tpr[index_of_one]

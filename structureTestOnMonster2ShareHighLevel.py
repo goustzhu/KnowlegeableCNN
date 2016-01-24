@@ -52,10 +52,10 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 	# for list-type data
 	for i in xrange(data_count):
 		layer0.append(DocEmbeddingNN(corpus, docSentenceCount, sentenceWordCount, rng, wordEmbeddingDim=200, \
-														 sentenceLayerNodesNum=10, \
+														 sentenceLayerNodesNum=50, \
 														 sentenceLayerNodesSize=[5, 200], \
 														 docLayerNodesNum=10, \
-														 docLayerNodesSize=[3, 100],
+														 docLayerNodesSize=[3, 50],
 														 pooling_mode=pooling_mode))
 # 		layer0.append(DocEmbeddingNN(corpus, docSentenceCount, sentenceWordCount, rng, wordEmbeddingDim=200, \
 # 														 sentenceLayerNodesNum=100, \
@@ -212,6 +212,11 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 		print "Error: ", errorNum
  		
 		fpr, tpr, _ = roc_curve(all_real_label, all_pred_prob)
+		
+		if mode == "test":
+			print "tpr_all: ", tpr
+			print "fpr_all: ", fpr
+			
 		roc_auc = auc(fpr, tpr)
 		print "data_name: ", data_name
 		print "ROC: ", roc_auc

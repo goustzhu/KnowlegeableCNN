@@ -52,17 +52,17 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 	# for list-type data
 	for i in xrange(data_count):
 		layer0.append(DocEmbeddingNN(corpus, docSentenceCount, sentenceWordCount, rng, wordEmbeddingDim=200, \
-														 sentenceLayerNodesNum=100, \
+														 sentenceLayerNodesNum=50, \
 														 sentenceLayerNodesSize=[5, 200], \
-														 docLayerNodesNum=100, \
-														 docLayerNodesSize=[3, 100],
+														 docLayerNodesNum=10, \
+														 docLayerNodesSize=[3, 50],
 														 pooling_mode=pooling_mode))
 
 		layer1.append(HiddenLayer(
 			rng,
 			input=layer0[i].output,
 			n_in=layer0[i].outputDimension,
-			n_out=100,
+			n_out=10,
 			activation=T.tanh,
 			W=hidden_layer_w,
 			b=hidden_layer_b
@@ -71,7 +71,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 # 		hidden_layer_w = layer1[i].W
 # 		hidden_layer_b = layer1[i].b
 	
-		layer2.append(LogisticRegression(input=layer1[i].output, n_in=100, n_out=2, W=logistic_layer_w, b=logistic_layer_b))
+		layer2.append(LogisticRegression(input=layer1[i].output, n_in=10, n_out=2, W=logistic_layer_w, b=logistic_layer_b))
 		logistic_layer_w = layer2[i].W
 		logistic_layer_b = layer2[i].b
 		

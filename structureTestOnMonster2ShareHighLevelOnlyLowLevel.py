@@ -16,7 +16,7 @@ from sklearn.metrics import roc_curve, auc, accuracy_score
 
 def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 	print "mode: ", mode
-	print "data_name: ", data_name
+	print "data_name: ", data_name	
 	print "pooling_mode: ", pooling_mode
 	print "Started!"
 	
@@ -219,6 +219,9 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 		print "Error: ", errorNum
  		
 		fpr, tpr, _ = roc_curve(all_real_label, all_pred_prob)
+		if mode == "test":
+			print "tpr_all: ", tpr
+			print "fpr_all: ", fpr
 		roc_auc = auc(fpr, tpr)
 		print "data_name: ", data_name
 		print "ROC: ", roc_auc
