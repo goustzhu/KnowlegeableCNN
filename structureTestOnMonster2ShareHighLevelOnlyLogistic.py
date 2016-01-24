@@ -196,7 +196,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 
 		print "Start to train."
 		epoch = 0
-		n_epochs = 2000
+		n_epochs = 10
 		ite = 0
 		
 		# ####Validate the model####

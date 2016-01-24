@@ -26,21 +26,27 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 	
 	# for list-type data
 	layer0 = DocEmbeddingNN(corpus, docSentenceCount, sentenceWordCount, rng, wordEmbeddingDim=200, \
-													 sentenceLayerNodesNum=100, \
+													 sentenceLayerNodesNum=50, \
 													 sentenceLayerNodesSize=[5, 200], \
-													 docLayerNodesNum=100, \
-													 docLayerNodesSize=[3, 100],
+													 docLayerNodesNum=10, \
+													 docLayerNodesSize=[3, 50],
 													 pooling_mode=pooling_mode)
+# 	layer0 = DocEmbeddingNN(corpus, docSentenceCount, sentenceWordCount, rng, wordEmbeddingDim=200, \
+# 													 sentenceLayerNodesNum=100, \
+# 													 sentenceLayerNodesSize=[5, 200], \
+# 													 docLayerNodesNum=100, \
+# 													 docLayerNodesSize=[3, 100],
+# 													 pooling_mode=pooling_mode)
 
 	layer1 = HiddenLayer(
 		rng,
 		input=layer0.output,
 		n_in=layer0.outputDimension,
-		n_out=100,
+		n_out=10,
 		activation=T.tanh
 	)
 	
-	layer2 = LogisticRegression(input=layer1.output, n_in=100, n_out=2)
+	layer2 = LogisticRegression(input=layer1.output, n_in=10, n_out=2)
 
 	# construct the parameter array.
 	params = layer2.params + layer1.params + layer0.params
@@ -109,14 +115,15 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 		print "ROC: ", roc_auc
 		
 		fpr, tpr, threshold = roc_curve(real_label, pred_label)
-		
 		index_of_one = list(threshold).index(1)
+		ar = (tpr[index_of_one] + 1 - fpr[index_of_one]) / 2
 		print "TPR: ", tpr[index_of_one]
 		print "FPR: ", fpr[index_of_one]
+		print "AR: ", ar
 		print "threshold: ", threshold[index_of_one]
 		if mode == "test":
 			valid_model.free()
-			return errorNum, roc_auc, tpr[index_of_one], fpr[index_of_one]
+			return errorNum, roc_auc, tpr[index_of_one], fpr[index_of_one], ar
 		
 		print "Loading train data."
 		cr_train = CorpusReader(minDocSentenceNum=5, minSentenceWordNum=5, dataset=traintext, labelset=trainlabel)
@@ -159,7 +166,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 		print "Compiled."
 		print "Start to train."
 		epoch = 0
-		n_epochs = 2000
+		n_epochs = 10
 		ite = 0
 			
 		while (epoch < n_epochs):
@@ -197,6 +204,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 			index_of_one = list(threshold).index(1)
 			print "TPR: ", tpr[index_of_one]
 			print "FPR: ", fpr[index_of_one]
+			print "AR: ", (tpr[index_of_one] + 1 - fpr[index_of_one]) / 2
 			print "threshold: ", threshold[index_of_one]
 			# Save model
 			print "Saving parameters."
@@ -267,15 +275,16 @@ if __name__ == '__main__':
 	results = dict()
 	if mode == "testall":
 		pooling_mode = ["average_exc_pad", "max"]
-		train_model_list = ["car", "web", "finance", "house", "cfw_all", "cfh_all"]
+# 		train_model_list = ["car", "web", "finance", "house", "cfw_all", "cfh_all"]
+		train_model_list = ["cfh_all"]
 		valid_model_list = ["car", "web", "finance", "house", "cfw_all", "cfh_all"]
-		indicate_name = ["errorRate", "acc", "roc", "tpr", "fpr"]
+		indicate_name = ["errorRate", "acc", "roc", "tpr", "fpr", "ar"]
 		for pm in pooling_mode:
 			for train_model in train_model_list:
 				for valid_model in valid_model_list:
 					print "--------This is \"%s\"->\"%s\" by %s----------" % (train_model, valid_model, pm)
-					errorRate, roc, tpr, fpr = work(mode="test", data_name=train_model, test_dataname=valid_model, pooling_mode=pm)
-					results["%s->%s by %s" % (train_model, valid_model, pm)] = (errorRate, 1 - errorRate, roc, tpr, fpr) 
+					errorRate, roc, tpr, fpr, ar = work(mode="test", data_name=train_model, test_dataname=valid_model, pooling_mode=pm)
+					results["%s->%s by %s" % (train_model, valid_model, pm)] = (errorRate, 1 - errorRate, roc, tpr, fpr, ar) 
 					print
 		for i in xrange(len(indicate_name)):
 			print indicate_name[i]

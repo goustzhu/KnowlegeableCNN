@@ -82,26 +82,26 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 			b=hidden_layer_b
 		))
 		
-# 		hidden_layer_w = layer1[i].W
-# 		hidden_layer_b = layer1[i].b
+		hidden_layer_w = layer1[i].W
+		hidden_layer_b = layer1[i].b
 	
 		layer2.append(LogisticRegression(input=layer1[i].output, n_in=10, n_out=2, W=logistic_layer_w, b=logistic_layer_b))
 # 		logistic_layer_w = layer2[i].W
 # 		logistic_layer_b = layer2[i].b
 		
-		local_params.append(layer2[i].params + layer1[i].params)
+		local_params.append(layer2[i].params)
 	
-	share_params = list(layer0[0].params)
+	share_params = list(layer0[0].params + layer1[0].params)
 	# construct the parameter array.
-	params = list(layer0[0].params)
-	
+	params = list(layer0[0].params) + layer1[0].params
+				
 	for i in xrange(data_count):
-		params += layer1[i].params + layer2[i].params
+			params += layer2[i].params
 		
 	
 # 	data_name = "car"
 	
-	para_path = "data/" + data_name + "/low_model/" + pooling_mode + ".model"
+	para_path = "data/" + data_name + "/share_hidden_log_model/" + pooling_mode + ".model"
 	traintext = ["data/" + data_names[i] + "/train/text"  for i in xrange(data_count)]
 	trainlabel = ["data/" + data_names[i] + "/train/label"  for i in xrange(data_count)]
 	testtext = ["data/" + test_data_names[i] + "/test/text"  for i in xrange(data_count)]

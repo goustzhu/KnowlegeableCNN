@@ -52,17 +52,23 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 	# for list-type data
 	for i in xrange(data_count):
 		layer0.append(DocEmbeddingNN(corpus, docSentenceCount, sentenceWordCount, rng, wordEmbeddingDim=200, \
-														 sentenceLayerNodesNum=100, \
+														 sentenceLayerNodesNum=10, \
 														 sentenceLayerNodesSize=[5, 200], \
-														 docLayerNodesNum=100, \
+														 docLayerNodesNum=10, \
 														 docLayerNodesSize=[3, 100],
 														 pooling_mode=pooling_mode))
+# 		layer0.append(DocEmbeddingNN(corpus, docSentenceCount, sentenceWordCount, rng, wordEmbeddingDim=200, \
+# 														 sentenceLayerNodesNum=100, \
+# 														 sentenceLayerNodesSize=[5, 200], \
+# 														 docLayerNodesNum=100, \
+# 														 docLayerNodesSize=[3, 100],
+# 														 pooling_mode=pooling_mode))
 
 		layer1.append(HiddenLayer(
 			rng,
 			input=layer0[i].output,
 			n_in=layer0[i].outputDimension,
-			n_out=100,
+			n_out=10,
 			activation=T.tanh,
 			W=hidden_layer_w,
 			b=hidden_layer_b
@@ -209,7 +215,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 		roc_auc = auc(fpr, tpr)
 		print "data_name: ", data_name
 		print "ROC: ", roc_auc
-		fpr, tpr, threshold = roc_curve(real_label, pred_label)
+		fpr, tpr, threshold = roc_curve(all_real_label, all_pred_label)
 		index_of_one = list(threshold).index(1)
 		print "TPR: ", tpr[index_of_one]
 		print "FPR: ", fpr[index_of_one]
@@ -220,7 +226,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 
 		print "Start to train."
 		epoch = 0
-		n_epochs = 2000
+		n_epochs = 10
 		ite = 0
 		
 		while (epoch < n_epochs):
