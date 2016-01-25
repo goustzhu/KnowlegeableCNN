@@ -77,7 +77,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 		hidden_layer_w = layer1[i].W
 		hidden_layer_b = layer1[i].b
 	
-		layer2.append(LogisticRegression(input=layer1[i].output, n_in=100, n_out=2, W=logistic_layer_w, b=logistic_layer_b))
+		layer2.append(LogisticRegression(input=layer1[i].output, n_in=10, n_out=2, W=logistic_layer_w, b=logistic_layer_b))
 		logistic_layer_w = layer2[i].W
 		logistic_layer_b = layer2[i].b
 		
