@@ -36,8 +36,8 @@ class CorpusReader:
         
         # Load w2v model data from file
         if CorpusReader.w2vDict is None:
-            CorpusReader.w2vDict = loadW2vModel("data/w2vFlat")
-#             CorpusReader.w2vDict = loadW2vModel("data/word2vec_flat_big")
+#             CorpusReader.w2vDict = loadW2vModel("data/w2vFlat")
+            CorpusReader.w2vDict = loadW2vModel("data/word2vec_flat_big")
             print "w2v model contains: ", len(self.w2vDict)
         
     labels = None
