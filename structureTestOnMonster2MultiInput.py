@@ -199,7 +199,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 	# 			costNum, errorNum = train_model(docMatrixes, labels)
 	# 			del docMatrixes, docSentenceNums, sentenceWordNums, labels
 				# print ".", 
-				if(ite % 1 == 0):
+				if(ite % 10 == 0):
 					print
 					print "@iter: ", ite
 					print "Cost: ", costNum
