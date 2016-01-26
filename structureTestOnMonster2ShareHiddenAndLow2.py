@@ -39,10 +39,8 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 	docSentenceCount = T.ivector("docSentenceCount")
 	sentenceWordCount = T.ivector("sentenceWordCount")
 	corpus = T.matrix("corpus")
-	corpusPos = T.matrix("corpusPos")
 	docLabel = T.ivector('docLabel')
 	
-	corpus0 = T.concatenate([corpus, corpusPos], axis=1)
 	sentenceW = None
 	sentenceB = None
 	docW = None
@@ -58,7 +56,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 	local_params = list()
 	# for list-type data
 	for i in xrange(data_count):
-		layer0.append(DocEmbeddingNN(corpus0, docSentenceCount, sentenceWordCount, rng, wordEmbeddingDim=249, \
+		layer0.append(DocEmbeddingNN(corpus, docSentenceCount, sentenceWordCount, rng, wordEmbeddingDim=249, \
 														 sentenceLayerNodesNum=50, \
 														 sentenceLayerNodesSize=[5, 249], \
 														 docLayerNodesNum=10, \
@@ -130,11 +128,12 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 			cr_train = CorpusReader(minDocSentenceNum=5, minSentenceWordNum=5, dataset=traintext[i], labelset=trainlabel[i])
 			docMatrixes, docSentenceNums, sentenceWordNums, ids, labels, _, posList = cr_train.getCorpus([0, 100000])
 			
+			docMatrixes = numpy.column_stack((docMatrixes, posList))
 			docMatrixes = transToTensor(docMatrixes, theano.config.floatX)
+# 			posList = transToTensor(posList, theano.config.floatX)
 			docSentenceNums = transToTensor(docSentenceNums, numpy.int32)
 			sentenceWordNums = transToTensor(sentenceWordNums, numpy.int32)
 			labels = transToTensor(labels, numpy.int32)
-			posList = transToTensor(posList, theano.config.floatX)
 			
 			index = T.lscalar("index")
 			
@@ -167,7 +166,6 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 			 		updates=updates,
 			 		givens={
 									corpus: docMatrixes,
-									corpusPos: posList,
 									docSentenceCount: docSentenceNums[index * batchSize: (index + 1) * batchSize + 1],
 									sentenceWordCount: sentenceWordNums,
 									docLabel: labels[index * batchSize: (index + 1) * batchSize]
@@ -178,11 +176,12 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 			print "Load test dataname: %s" % test_data_names[i]
 			cr_test = CorpusReader(minDocSentenceNum=5, minSentenceWordNum=5, dataset=testtext[i], labelset=testlabel[i])
 			validDocMatrixes, validDocSentenceNums, validSentenceWordNums, validIds, validLabels, _, validPosList = cr_test.getCorpus([0, 1000])
+			validDocMatrixes = numpy.column_stack((validDocMatrixes, posList))
 			validDocMatrixes = transToTensor(validDocMatrixes, theano.config.floatX)
+# 			validPosList = transToTensor(validPosList, theano.config.floatX)
 			validDocSentenceNums = transToTensor(validDocSentenceNums, numpy.int32)
 			validSentenceWordNums = transToTensor(validSentenceWordNums, numpy.int32)
 			validLabels = transToTensor(validLabels, numpy.int32)
-			validPosList = transToTensor(validPosList, theano.config.floatX)
 			print "Validating set size is ", len(validDocMatrixes.get_value())
 			print "Data loaded."
 			
@@ -192,7 +191,6 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 		 		[cost, error, layer2[i].y_pred, docLabel, T.transpose(layer2[i].p_y_given_x)[1]],
 		 		givens={
 								corpus: validDocMatrixes,
-								corpusPos: validPosList,
 								docSentenceCount: validDocSentenceNums,
 								sentenceWordCount: validSentenceWordNums,
 								docLabel: validLabels
