@@ -176,7 +176,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 			print "Load test dataname: %s" % test_data_names[i]
 			cr_test = CorpusReader(minDocSentenceNum=5, minSentenceWordNum=5, dataset=testtext[i], labelset=testlabel[i])
 			validDocMatrixes, validDocSentenceNums, validSentenceWordNums, validIds, validLabels, _, validPosList = cr_test.getCorpus([0, 1000])
-			validDocMatrixes = numpy.column_stack((validDocMatrixes, posList))
+			validDocMatrixes = numpy.column_stack((validDocMatrixes, validPosList))
 			validDocMatrixes = transToTensor(validDocMatrixes, theano.config.floatX)
 # 			validPosList = transToTensor(validPosList, theano.config.floatX)
 			validDocSentenceNums = transToTensor(validDocSentenceNums, numpy.int32)
