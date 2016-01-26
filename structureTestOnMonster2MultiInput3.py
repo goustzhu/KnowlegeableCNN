@@ -23,13 +23,11 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 	docSentenceCount = T.ivector("docSentenceCount")
 	sentenceWordCount = T.ivector("sentenceWordCount")
 	corpus = T.matrix("corpus")
-	corpusPos = T.matrix("corpusPos")
 	docLabel = T.ivector('docLabel') 
 	
-	corpus0 = T.concatenate([corpus, corpusPos], axis=1)
 	
 	# for list-type data
-	layer0 = DocEmbeddingNN(corpus0, docSentenceCount, sentenceWordCount, rng, \
+	layer0 = DocEmbeddingNN(corpus, docSentenceCount, sentenceWordCount, rng, \
 													wordEmbeddingDim=249, \
 													 sentenceLayerNodesNum=50, \
 													 sentenceLayerNodesSize=[5, 249], \
@@ -82,11 +80,12 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 # 		print "Right answer: "
 # 		print zip(validIds, validLabels)
 		
+		validDocMatrixes = numpy.column_stack((validDocMatrixes, validPosList))
 		validDocMatrixes = transToTensor(validDocMatrixes, theano.config.floatX)
+# 		validPosList = transToTensor(validPosList, theano.config.floatX)
 		validDocSentenceNums = transToTensor(validDocSentenceNums, numpy.int32)
 		validSentenceWordNums = transToTensor(validSentenceWordNums, numpy.int32)
 		validLabels = transToTensor(validLabels, numpy.int32)
-		validPosList = transToTensor(validPosList, theano.config.floatX)
 		print "Data loaded."
 		
 		valid_model = theano.function(
@@ -94,11 +93,11 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 	 		[cost, error, layer2.y_pred, docLabel, T.transpose(layer2.p_y_given_x)[1]],
 	 		givens={
 							corpus: validDocMatrixes,
-							corpusPos: validPosList,
 							docSentenceCount: validDocSentenceNums,
 							sentenceWordCount: validSentenceWordNums,
 							docLabel: validLabels
-					}
+					},
+			allow_input_downcast=True
 	 	)
 		
 		# ####Validate the model####
@@ -137,11 +136,13 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 # 		print "Right answer: "
 # 		print zip(ids, labels)
 		
+		
+		docMatrixes = numpy.column_stack((docMatrixes, posList))
 		docMatrixes = transToTensor(docMatrixes, theano.config.floatX)
+# 		posList = transToTensor(posList, theano.config.floatX)
 		docSentenceNums = transToTensor(docSentenceNums, numpy.int32)
 		sentenceWordNums = transToTensor(sentenceWordNums, numpy.int32)
 		labels = transToTensor(labels, numpy.int32)
-		posList = transToTensor(posList, theano.config.floatX)
 		
 	# 	valid_cr = CorpusReader(minDocSentenceNum=5, minSentenceWordNum=5, dataset="data/valid/split", labelset="data/valid/label.txt")
 		print
@@ -163,11 +164,11 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 	 		updates=updates,
 	 		givens={
 							corpus: docMatrixes,
-							corpusPos: posList,
 							docSentenceCount: docSentenceNums[index * batchSize: (index + 1) * batchSize + 1],
 							sentenceWordCount: sentenceWordNums,
 							docLabel: labels[index * batchSize: (index + 1) * batchSize],
-						}
+						},
+			allow_input_downcast=True
 	 	)
 		
 		print "Compiled."
