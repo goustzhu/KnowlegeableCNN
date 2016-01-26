@@ -94,6 +94,10 @@ class DocEmbeddingNN:
         docPool = downsample.max_pool_2d(doc_out, (self.__MAXDIM, 1), mode= self.__pooling_mode, ignore_border=False)
         docOutput = T.tanh(docPool + docB.dimshuffle([0, 'x', 'x']))
         doc_embedding = docOutput.flatten(1)
+        
+#         p = printing.Print('doc_embedding')
+#         doc_embedding = p(doc_embedding)
+        
         return doc_embedding
     
     def __dealWithSentence(self, sentenceWordCount0, sentenceWordCount1, docs, sentenceW, sentenceB):
@@ -104,5 +108,7 @@ class DocEmbeddingNN:
         sentence_pool = downsample.max_pool_2d(sentence_out, (self.__MAXDIM, 1), mode= self.__pooling_mode, ignore_border=False)
         
         sentence_output = T.tanh(sentence_pool + sentenceB.dimshuffle([0, 'x', 'x']))
+        
         sentence_embedding = sentence_output.flatten(1)
+        
         return sentence_embedding

@@ -5,7 +5,7 @@ from mlp import HiddenLayer
 from logistic_sgd_lazy import LogisticRegression
 from DocEmbeddingNN import DocEmbeddingNN
 # from DocEmbeddingNNPadding import DocEmbeddingNN
-from knoweagebleClassifyFlattenedLazy import CorpusReader
+from knoweagebleClassifyFlattenedLazy2 import CorpusReader
 import cPickle
 import os
 
@@ -101,7 +101,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 	
 # 	data_name = "car"
 	
-	para_path = "data/" + data_name + "/share_hidden_low_model/" + pooling_mode + ".model"
+	para_path = "data/" + data_name + "/share_hidden_low_model_multiinput/" + pooling_mode + ".model"
 	traintext = ["data/" + data_names[i] + "/train/text"  for i in xrange(data_count)]
 	trainlabel = ["data/" + data_names[i] + "/train/label"  for i in xrange(data_count)]
 	testtext = ["data/" + test_data_names[i] + "/test/text"  for i in xrange(data_count)]
@@ -128,7 +128,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 			cr_train = CorpusReader(minDocSentenceNum=5, minSentenceWordNum=5, dataset=traintext[i], labelset=trainlabel[i])
 			docMatrixes, docSentenceNums, sentenceWordNums, ids, labels, _, posList = cr_train.getCorpus([0, 100000])
 			
-			docMatrixes = numpy.column_stack((docMatrixes, posList))
+# 			docMatrixes = numpy.column_stack((docMatrixes, posList))
 			docMatrixes = transToTensor(docMatrixes, theano.config.floatX)
 # 			posList = transToTensor(posList, theano.config.floatX)
 			docSentenceNums = transToTensor(docSentenceNums, numpy.int32)
@@ -176,7 +176,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 			print "Load test dataname: %s" % test_data_names[i]
 			cr_test = CorpusReader(minDocSentenceNum=5, minSentenceWordNum=5, dataset=testtext[i], labelset=testlabel[i])
 			validDocMatrixes, validDocSentenceNums, validSentenceWordNums, validIds, validLabels, _, validPosList = cr_test.getCorpus([0, 1000])
-			validDocMatrixes = numpy.column_stack((validDocMatrixes, validPosList))
+# 			validDocMatrixes = numpy.column_stack((validDocMatrixes, validPosList))
 			validDocMatrixes = transToTensor(validDocMatrixes, theano.config.floatX)
 # 			validPosList = transToTensor(validPosList, theano.config.floatX)
 			validDocSentenceNums = transToTensor(validDocSentenceNums, numpy.int32)
@@ -255,7 +255,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 					costNum, errorNum, pred_label, real_label = train_model[dataset_index](i)
 					ite = ite + 1
 					# for padding data
-					if(ite % 10 == 0):
+					if(ite % 1 == 0):
 						print
 						print "Dataset name: ", data_names[dataset_index]
 						print "@iter: ", ite
