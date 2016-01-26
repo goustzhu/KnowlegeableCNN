@@ -78,7 +78,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 		
 		print "Loading test data."
 		cr_test = CorpusReader(minDocSentenceNum=5, minSentenceWordNum=5, dataset=testtext, labelset=testlabel)
-		validDocMatrixes, validDocSentenceNums, validSentenceWordNums, validIds, validLabels = cr_test.getCorpus([0, 1000])
+		validDocMatrixes, validDocSentenceNums, validSentenceWordNums, validIds, validLabels, _, _ = cr_test.getCorpus([0, 1000])
 		
 # 		print "Right answer: "
 # 		print zip(validIds, validLabels)
@@ -131,7 +131,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 		
 		print "Loading train data."
 		cr_train = CorpusReader(minDocSentenceNum=5, minSentenceWordNum=5, dataset=traintext, labelset=trainlabel)
-		docMatrixes, docSentenceNums, sentenceWordNums, ids, labels = cr_train.getCorpus([0, 100000])
+		docMatrixes, docSentenceNums, sentenceWordNums, ids, labels, _, _  = cr_train.getCorpus([0, 100000])
 		
 # 		print "Right answer: "
 # 		print zip(ids, labels)
@@ -279,7 +279,7 @@ if __name__ == '__main__':
 	results = dict()
 	if mode == "testall":
 		pooling_mode = ["average_exc_pad", "max"]
-		train_model_list = ["car",  "finance", "house", "cfh_all"]
+		train_model_list = ["car", "finance", "house", "cfh_all"]
 # 		train_model_list = ["cfh_all"]
 		valid_model_list = ["car", "finance", "house", "cfh_all"]
 		indicate_name = ["errorRate", "acc", "roc", "tpr", "fpr", "ar"]

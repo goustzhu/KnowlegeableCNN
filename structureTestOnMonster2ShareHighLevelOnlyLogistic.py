@@ -109,7 +109,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 		
 		for i in xrange(data_count):
 			cr_train = CorpusReader(minDocSentenceNum=5, minSentenceWordNum=5, dataset=traintext[i], labelset=trainlabel[i])
-			docMatrixes, docSentenceNums, sentenceWordNums, ids, labels = cr_train.getCorpus([0, 100000])
+			docMatrixes, docSentenceNums, sentenceWordNums, ids, labels, _, _ = cr_train.getCorpus([0, 100000])
 			
 			docMatrixes = transToTensor(docMatrixes, theano.config.floatX)
 			docSentenceNums = transToTensor(docSentenceNums, numpy.int32)
@@ -156,7 +156,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 			
 			print "Load test dataname: %s" % test_data_names[i]
 			cr_test = CorpusReader(minDocSentenceNum=5, minSentenceWordNum=5, dataset=testtext[i], labelset=testlabel[i])
-			validDocMatrixes, validDocSentenceNums, validSentenceWordNums, validIds, validLabels = cr_test.getCorpus([0, 1000])
+			validDocMatrixes, validDocSentenceNums, validSentenceWordNums, validIds, validLabels, _, _ = cr_test.getCorpus([0, 1000])
 			validDocMatrixes = transToTensor(validDocMatrixes, theano.config.floatX)
 			validDocSentenceNums = transToTensor(validDocSentenceNums, numpy.int32)
 			validSentenceWordNums = transToTensor(validSentenceWordNums, numpy.int32)
