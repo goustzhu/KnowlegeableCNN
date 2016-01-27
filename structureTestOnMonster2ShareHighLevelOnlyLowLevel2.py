@@ -281,10 +281,11 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 					
 				fpr, tpr, threshold = roc_curve(real_label, pred_label)
 				index_of_one = list(threshold).index(1)
-				print "TPR: ", tpr[index_of_one]
-				print "FPR: ", fpr[index_of_one]
-				print "AR: ", (tpr[index_of_one] + 1 - fpr[index_of_one]) / 2
-				print "threshold: ", threshold[index_of_one]
+				if 1 in threshold:
+					print "TPR: ", tpr[index_of_one]
+					print "FPR: ", fpr[index_of_one]
+					print "AR: ", (tpr[index_of_one] + 1 - fpr[index_of_one]) / 2
+					print "threshold: ", threshold[index_of_one]
 			
 			print "Valid current model :", data_names
 			errorNum = 1 - accuracy_score(all_real_label, all_pred_label)
@@ -295,11 +296,12 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 			print "data_name: ", data_name
 			print "ROC: ", roc_auc
 			fpr, tpr, threshold = roc_curve(all_real_label, all_pred_label)
-			index_of_one = list(threshold).index(1)
-			print "TPR: ", tpr[index_of_one]
-			print "FPR: ", fpr[index_of_one]
-			print "AR: ", (tpr[index_of_one] + 1 - fpr[index_of_one]) / 2
-			print "threshold: ", threshold[index_of_one]
+			if 1 in threshold:
+				index_of_one = list(threshold).index(1)
+				print "TPR: ", tpr[index_of_one]
+				print "FPR: ", fpr[index_of_one]
+				print "AR: ", (tpr[index_of_one] + 1 - fpr[index_of_one]) / 2
+				print "threshold: ", threshold[index_of_one]
 			# Save model
 			print "Saving parameters."
 			saveParamsVal(para_path, params)
