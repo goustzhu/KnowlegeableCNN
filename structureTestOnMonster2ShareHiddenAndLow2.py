@@ -252,6 +252,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 					if i >= n_batches[dataset_index]:
 						continue
 					# for list-type data
+					print "dataset_index: %d, i: %d" %(dataset_index, i)
 					costNum, errorNum, pred_label, real_label = train_model[dataset_index](i)
 					ite = ite + 1
 					# for padding data
