@@ -3,7 +3,6 @@ import theano
 import numpy
 from mlp import HiddenLayer
 from logistic_sgd import LogisticRegression
-# from DocNN import DocNN
 from DocEmbeddingNN import DocEmbeddingNN
 # from DocEmbeddingNNPadding import DocEmbeddingNN
 from knoweagebleClassifyFlattenedLazy import CorpusReader
@@ -23,38 +22,32 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 	docSentenceCount = T.ivector("docSentenceCount")
 	sentenceWordCount = T.ivector("sentenceWordCount")
 	corpus = T.matrix("corpus")
-	corpusPos = T.matrix("corpusPos")
 	docLabel = T.ivector('docLabel') 
 	
-	corpus0 = T.concatenate([corpus, corpusPos], axis=1)
-	
 	# for list-type data
-	layer0 = DocEmbeddingNN(corpus0, docSentenceCount, sentenceWordCount, rng, \
-													wordEmbeddingDim=249, \
+	layer0 = DocEmbeddingNN(corpus, docSentenceCount, sentenceWordCount, rng, wordEmbeddingDim=200, \
 													 sentenceLayerNodesNum=50, \
-													 sentenceLayerNodesSize=[5, 249], \
+													 sentenceLayerNodesSize=[5, 200], \
 													 docLayerNodesNum=10, \
 													 docLayerNodesSize=[3, 50],
 													 pooling_mode=pooling_mode)
-
-	layer1 = HiddenLayer(
-		rng,
-		input=layer0.output,
-		n_in=layer0.outputDimension,
-		n_out=10,
-		activation=T.tanh
-	)
+# 	layer0 = DocEmbeddingNN(corpus, docSentenceCount, sentenceWordCount, rng, wordEmbeddingDim=200, \
+# 													 sentenceLayerNodesNum=100, \
+# 													 sentenceLayerNodesSize=[5, 200], \
+# 													 docLayerNodesNum=100, \
+# 													 docLayerNodesSize=[3, 100],
+# 													 pooling_mode=pooling_mode)
 	
-	layer2 = LogisticRegression(input=layer1.output, n_in=10, n_out=2)
+	layer2 = LogisticRegression(input=layer0.output, n_in=10, n_out=2)
 
 	# construct the parameter array.
-	params = layer2.params + layer1.params + layer0.params
+	params = layer2.params  + layer0.params
 	
 	# Load the parameters last time, optionally.
 	
 # 	data_name = "car"
 	
-	para_path = "data/" + data_name + "/model/multi_input_mergeinput" + pooling_mode + ".model"
+	para_path = "data/" + data_name + "/model_nohidden/" + pooling_mode + ".model"
 	traintext = "data/" + data_name + "/train/text"
 	trainlabel = "data/" + data_name + "/train/label"
 	testtext = "data/" + test_dataname + "/test/text"
@@ -77,7 +70,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 		
 		print "Loading test data."
 		cr_test = CorpusReader(minDocSentenceNum=5, minSentenceWordNum=5, dataset=testtext, labelset=testlabel)
-		validDocMatrixes, validDocSentenceNums, validSentenceWordNums, validIds, validLabels, _, validPosList = cr_test.getCorpus([0, 1000])
+		validDocMatrixes, validDocSentenceNums, validSentenceWordNums, validIds, validLabels, _, _ = cr_test.getCorpus([0, 1000])
 		
 # 		print "Right answer: "
 # 		print zip(validIds, validLabels)
@@ -86,7 +79,6 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 		validDocSentenceNums = transToTensor(validDocSentenceNums, numpy.int32)
 		validSentenceWordNums = transToTensor(validSentenceWordNums, numpy.int32)
 		validLabels = transToTensor(validLabels, numpy.int32)
-		validPosList = transToTensor(validPosList, theano.config.floatX)
 		print "Data loaded."
 		
 		valid_model = theano.function(
@@ -94,7 +86,6 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 	 		[cost, error, layer2.y_pred, docLabel, T.transpose(layer2.p_y_given_x)[1]],
 	 		givens={
 							corpus: validDocMatrixes,
-							corpusPos: validPosList,
 							docSentenceCount: validDocSentenceNums,
 							sentenceWordCount: validSentenceWordNums,
 							docLabel: validLabels
@@ -132,7 +123,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 		
 		print "Loading train data."
 		cr_train = CorpusReader(minDocSentenceNum=5, minSentenceWordNum=5, dataset=traintext, labelset=trainlabel)
-		docMatrixes, docSentenceNums, sentenceWordNums, ids, labels, _, posList = cr_train.getCorpus([0, 100000])
+		docMatrixes, docSentenceNums, sentenceWordNums, ids, labels, _, _  = cr_train.getCorpus([0, 100000])
 		
 # 		print "Right answer: "
 # 		print zip(ids, labels)
@@ -141,13 +132,12 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 		docSentenceNums = transToTensor(docSentenceNums, numpy.int32)
 		sentenceWordNums = transToTensor(sentenceWordNums, numpy.int32)
 		labels = transToTensor(labels, numpy.int32)
-		posList = transToTensor(posList, theano.config.floatX)
 		
 	# 	valid_cr = CorpusReader(minDocSentenceNum=5, minSentenceWordNum=5, dataset="data/valid/split", labelset="data/valid/label.txt")
 		print
 		index = T.lscalar("index")
 		batchSize = 10
-		n_batches = (len(docSentenceNums.get_value())  - 1 - 1) / batchSize + 1
+		n_batches = (len(docSentenceNums.get_value()) - 1) / batchSize + 1
 		print
 		print "Train set size is ", len(docMatrixes.get_value())
 		print "Validating set size is ", len(validDocMatrixes.get_value())
@@ -163,10 +153,9 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 	 		updates=updates,
 	 		givens={
 							corpus: docMatrixes,
-							corpusPos: posList,
 							docSentenceCount: docSentenceNums[index * batchSize: (index + 1) * batchSize + 1],
 							sentenceWordCount: sentenceWordNums,
-							docLabel: labels[index * batchSize: (index + 1) * batchSize],
+							docLabel: labels[index * batchSize: (index + 1) * batchSize]
 						}
 	 	)
 		
@@ -181,9 +170,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 			#######################
 			for i in range(n_batches):
 				# for list-type data
-				print ".",
 				costNum, errorNum, pred_label, real_label = train_model(i)
-				print ".",
 				ite = ite + 1
 				# for padding data
 	# 			costNum, errorNum = train_model(docMatrixes, labels)

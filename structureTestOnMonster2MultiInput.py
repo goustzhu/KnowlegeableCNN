@@ -157,7 +157,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 		print
 		index = T.lscalar("index")
 		batchSize = 10
-		n_batches = (len(docSentenceNums.get_value()) - 1) / batchSize + 1
+		n_batches = (len(docSentenceNums.get_value())  - 1 - 1) / batchSize + 1
 		print
 		print "Train set size is ", len(docMatrixes.get_value())
 		print "Validating set size is ", len(validDocMatrixes.get_value())

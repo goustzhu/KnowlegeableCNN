@@ -65,7 +65,8 @@ class CorpusReader:
         return self.__wordDim
     
     def __sentence2Matrix(self, wordList):
-        sentenceMatrix = map(lambda word: (np.hstack((self.w2vDict[word[0]], self.__pos_vectors[word[1]])), word[0], self.__pos_vectors[word[1]]) if (word[0] in self.w2vDict) else None, wordList)
+        sentenceMatrix = map(lambda word: (np.hstack((self.w2vDict[word[0]], \
+                                                      self.__pos_vectors[word[1]])), word[0], self.__pos_vectors[word[1]]) if (word[0] in self.w2vDict) else None, wordList)
         
         sentenceMatrix = filter(lambda item: not item is None, sentenceMatrix)
         
