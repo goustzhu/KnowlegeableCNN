@@ -101,7 +101,7 @@ def work(mode, data_name, test_dataname, pooling_mode="average_exc_pad"):
 	
 # 	data_name = "car"
 	
-	para_path = "data/" + data_name + "/low_model/" + pooling_mode + ".model"
+	para_path = "data/" + data_name + "/low_model_multiinput/" + pooling_mode + ".model"
 	traintext = ["data/" + data_names[i] + "/train/text"  for i in xrange(data_count)]
 	trainlabel = ["data/" + data_names[i] + "/train/label"  for i in xrange(data_count)]
 	testtext = ["data/" + test_data_names[i] + "/test/text"  for i in xrange(data_count)]
