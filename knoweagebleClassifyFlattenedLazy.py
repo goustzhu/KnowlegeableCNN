@@ -159,12 +159,14 @@ class CorpusReader:
         if(len(docInfo) == 0):
             return None
         
-        docMatrixes, docSentenceNums, sentenceWordNums, ids, _, wordListList = zip(*docInfo)
+        docMatrixes, docSentenceNums, sentenceWordNums, ids, _, wordListList, posListList = zip(*docInfo)
+#         docMatrixes, docSentenceNums, sentenceWordNums, ids, _, wordListList = zip(*docInfo)
         
         # Merge the sentence embedding into a holistic list.
         docMatrixes = reduce(add, docMatrixes, [])
         sentenceWordNums = reduce(add, sentenceWordNums, [])
         wordListList = reduce(add, wordListList, [])
+        posListList = reduce(add, posListList, [])
         
         print
         
@@ -174,7 +176,7 @@ class CorpusReader:
         docSentenceNums = np.cumsum(docSentenceNums)
         sentenceWordNums = np.cumsum(sentenceWordNums)
         
-        return (docMatrixes, docSentenceNums, sentenceWordNums, ids, wordListList)
+        return (docMatrixes, docSentenceNums, sentenceWordNums, ids, wordListList, posListList)
     
     def __findBoarder(self, docSentenceCount, sentenceWordCount):
         maxDocSentenceNum = np.max(docSentenceCount)

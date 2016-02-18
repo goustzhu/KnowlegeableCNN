@@ -42,7 +42,7 @@ def work(model_name, dataset_name, pooling_mode):
 	
 	layer2 = LogisticRegression(input=layer1.output, n_in=100, n_out=2)
 
-	cost = layer2.negative_log_likelihood(1-layer2.y_pred)
+	cost = layer2.negative_log_likelihood(1 - layer2.y_pred)
 		
 	# calculate sentence sentence_score
 	sentence_grads = T.grad(cost, layer0.sentenceResults)
@@ -63,7 +63,7 @@ def work(model_name, dataset_name, pooling_mode):
 	params = layer2.params + layer1.params + layer0.params
 	
 	# Load the parameters last time, optionally.
-	model_path = "data/" + dataset_name + "/model/" + pooling_mode + ".model"
+	model_path = "data/" + dataset_name + "/model_100,100,100,100,parameters/" + pooling_mode + ".model"
 	loadParamsVal(model_path, params)
 	print "Compiling computing graph."
 	output_model = theano.function(
@@ -81,7 +81,7 @@ def work(model_name, dataset_name, pooling_mode):
 		if info is None:
 			print "Pass"
 			continue
-		docMatrixes, _, sentenceWordNums, ids, sentences = info
+		docMatrixes, _, sentenceWordNums, ids, sentences, _ = info
 		docMatrixes = numpy.matrix(
 		            docMatrixes,
 		            dtype=theano.config.floatX
